@@ -40,6 +40,11 @@
   :type '(repeat string)
   :group 'geiser-gauche)
 
+(geiser-custom--defcustom geiser-gauche-case-sensitive-p t
+  "Non-nil means keyword highlighting is case-sensitive."
+  :type 'boolean
+  :group 'geiser-gauche)
+
 
 ;;; REPL support:
 
@@ -139,7 +144,7 @@
 
 ;;; Implementation definition:
 
-(define-geiser-implementation chez
+(define-geiser-implementation gauche
   (binary geiser-gauche--binary)
   (arglist geiser-gauche--parameters)
   (version-command geiser-gauche--version)
@@ -158,8 +163,7 @@
   ;; (external-help geiser-gauche--manual-look-up)
   ;; (check-buffer geiser-gauche--guess)
   ;; (keywords geiser-gauche--keywords)
-  ;; (case-sensitive geiser-gauche-case-sensitive-p)
-  )
+  (case-sensitive geiser-gauche-case-sensitive-p))
 
 (geiser-impl--add-to-alist 'regexp "\\.scm$" 'gauche t)
 
