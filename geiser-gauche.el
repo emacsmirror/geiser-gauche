@@ -111,10 +111,10 @@
 
 ;;; REPL startup
 
-(defconst geiser-gauche-minimum-version "9.4")
+(defconst geiser-gauche-minimum-version "0.9.9")
 
 (defun geiser-gauche--version (binary)
-  (car (process-lines binary "--version")))
+  (cadr (read (cadr (process-lines "gosh" "-V")))))
 
 (defun geiser-gauche--startup (remote)
   (let ((geiser-log-verbose-p t))
