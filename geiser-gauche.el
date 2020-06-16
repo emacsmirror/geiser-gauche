@@ -1,4 +1,4 @@
-;;; geiser-gauche.el -- Chez Scheme's implementation of the geiser protocols
+;;; geiser-gauche.el -- Gauche Scheme's implementation of the geiser protocols
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the Modified BSD License. You should
@@ -26,22 +26,17 @@
 ;;; Customization:
 
 (defgroup geiser-gauche nil
-  "Customization for Geiser's Chez Scheme flavour."
+  "Customization for Geiser's Gauche Scheme flavour."
   :group 'geiser)
 
 (geiser-custom--defcustom geiser-gauche-binary
-    "scheme"
-  "Name to use to call the Chez Scheme executable when starting a REPL."
+    "gosh"
+  "Name to use to call the Gauche Scheme executable when starting a REPL."
   :type '(choice string (repeat string))
   :group 'geiser-gauche)
 
-(geiser-custom--defcustom geiser-gauche-init-file "~/.chez-geiser"
-  "Initialization file with user code for the Chez REPL."
-  :type 'string
-  :group 'geiser-gauche)
-
-(geiser-custom--defcustom geiser-gauche-extra-command-line-parameters '()
-  "Additional parameters to supply to the Chez binary."
+(geiser-custom--defcustom geiser-gauche-extra-command-line-parameters '("-i")
+  "Additional parameters to supply to the Gauche binary."
   :type '(repeat string)
   :group 'geiser-gauche)
 
@@ -54,13 +49,10 @@
     geiser-gauche-binary))
 
 (defun geiser-gauche--parameters ()
-  "Return a list with all parameters needed to start Chez Scheme.
-This function uses `geiser-gauche-init-file' if it exists."
-  (let ((init-file (and (stringp geiser-gauche-init-file)
-                        (expand-file-name geiser-gauche-init-file))))
-    `(,@(and init-file (file-readable-p init-file) (list init-file))
-      ,(expand-file-name "chez/geiser/geiser.ss" geiser-scheme-dir)
-      ,@geiser-gauche-extra-command-line-parameters)))
+  "Return a list with all parameters needed to start Gauche Scheme."
+  `(,@geiser-gauche-extra-command-line-parameters
+    "-l" ,(expand-file-name "gauche/geiser.scm" geiser-scheme-dir)
+    ,@(and (listp geiser-gauche-binary) (cdr geiser-gauche-binary))))
 
 (defconst geiser-gauche--prompt-regexp "> ")
 
@@ -86,9 +78,19 @@ This function uses `geiser-gauche-init-file' if it exists."
      (let ((form (mapconcat 'identity args " ")))
        (format "(geiser:%s %s)" proc form)))))
 
+(defconst geiser-gauche--module-re
+  "(define-module +\\(\\w+\\)")
+
 (defun geiser-gauche--get-module (&optional module)
   (cond ((null module)
-         :f)
+         (save-excursion
+           (geiser-syntax--pop-to-top)
+	   (message "%s" )
+           (if (or (re-search-backward geiser-gauche--module-re nil t)
+                   (looking-at geiser-gauche--module-re)
+                   (re-search-forward geiser-gauche--module-re nil t))
+               (geiser-gauche--get-module (match-string-no-properties 1))
+             :f)))
         ((listp module) module)
         ((stringp module)
          (condition-case nil
@@ -105,9 +107,9 @@ This function uses `geiser-gauche-init-file' if it exists."
 (defun geiser-gauche--import-command (module)
   (format "(import %s)" module))
 
-(defun geiser-gauche--exit-command () "(exit 0)")
-;; 
-;; ;;; REPL startup
+(defun geiser-gauche--exit-command () "(exit)")
+
+;;; REPL startup
 
 (defconst geiser-gauche-minimum-version "9.4")
 
@@ -126,11 +128,11 @@ This function uses `geiser-gauche-init-file' if it exists."
 
 ;;;  Manual look up
 
-(defun guile--manual-look-up (id mod)
+(defun gauche--manual-look-up (id mod)
   (let ((info-lookup-other-window-flag
-         geiser-guile-manual-lookup-other-window-p))
-    (info-lookup-symbol (symbol-name id) 'geiser-guile-mode))
-  (when geiser-guile-manual-lookup-other-window-p
+         geiser-gauche-manual-lookup-other-window-p))
+    (info-lookup-symbol (symbol-name id) 'geiser-gauche-mode))
+  (when geiser-gauche-manual-lookup-other-window-p
     (switch-to-buffer-other-window "*info*"))
   (search-forward (format "%s" id) nil t))
 
@@ -159,7 +161,6 @@ This function uses `geiser-gauche-init-file' if it exists."
   ;; (case-sensitive geiser-gauche-case-sensitive-p)
   )
 
-(geiser-impl--add-to-alist 'regexp "\\.ss$" 'chez t)
-(geiser-impl--add-to-alist 'regexp "\\.def$" 'chez t)
+(geiser-impl--add-to-alist 'regexp "\\.scm$" 'gauche t)
 
 (provide 'geiser-gauche)
