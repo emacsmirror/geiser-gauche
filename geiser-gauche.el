@@ -245,5 +245,7 @@
   (case-sensitive geiser-gauche-case-sensitive-p))
 
 (geiser-impl--add-to-alist 'regexp "\\.scm$" 'gauche t)
+
+(add-to-list 'geiser-active-implementations 'gauche)
 
 (provide 'geiser-gauche)
