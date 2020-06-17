@@ -90,7 +90,6 @@
   (cond ((null module)
          (save-excursion
            (geiser-syntax--pop-to-top)
-	   (message "%s" )
            (if (or (re-search-backward geiser-gauche--module-re nil t)
                    (looking-at geiser-gauche--module-re)
                    (re-search-forward geiser-gauche--module-re nil t))
