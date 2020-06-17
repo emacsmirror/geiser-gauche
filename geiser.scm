@@ -67,6 +67,3 @@
    (cut string-prefix? prefix <>)
    (map (^x (symbol->string (module-name x)))
 	(all-modules))))
-
-(define (f x) (+ 1 x))
-
