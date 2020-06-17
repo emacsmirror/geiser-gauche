@@ -45,6 +45,11 @@
   :type 'boolean
   :group 'geiser-gauche)
 
+(geiser-custom--defcustom geiser-gauche-extra-keywords nil
+  "Extra keywords highlighted in Gauche scheme buffers."
+  :type '(repeat string)
+  :group 'geiser-chicken)
+
 
 ;;; REPL support:
 
@@ -102,16 +107,88 @@
            (error :f)))
         (t :f)))
 
+(defun geiser-gauche--enter-command (module)
+  (format "(select-module %s)" module))
+
+(defun geiser-gauche--import-command (module)
+  (format "(import %s)" module))
+
 (defun geiser-gauche--symbol-begin (module)
   (if module
       (max (save-excursion (beginning-of-line) (point))
            (save-excursion (skip-syntax-backward "^(>") (1- (point))))
     (save-excursion (skip-syntax-backward "^'-()>") (point))))
 
-(defun geiser-gauche--import-command (module)
-  (format "(import %s)" module))
-
 (defun geiser-gauche--exit-command () "(exit)")
+
+(defconst geiser-gauche--binding-forms
+  '("and-let" "and-let1" "let1" "if-let1" "rlet1" "receive" "fluid-let" "let-values"
+    "^" "^a" "^b" "^c" "^d" "^e" "^f" "^g" "^h" "^i" "^j" "^k" "^l" "^m" "^n" "^o" "^p" "^q"
+    "^r" "^s" "^t" "^v" "^x" "^y" "^z" "^w" "rec"))
+
+(defconst geiser-gauche--binding-forms*
+  '("and-let*" "let*-values" ))
+
+(defun geiser-gauche--keywords ()
+  (append
+   (geiser-syntax--simple-keywords geiser-gauche-extra-keywords)
+   (geiser-syntax--simple-keywords geiser-gauche-builtin-keywords)))
+
+(defconst geiser-gauche-builtin-keywords
+  '("and-let"
+    "and-let1"
+    "assume"
+    "cut"
+    "cute"
+    "define-constant"
+    "define-enum"
+    "define-in-module"
+    "define-inline"
+    "define-type"
+    "dotimes"
+    "dolist"
+    "ecase"
+    "fluid-let"
+    "if-let1"
+    "let1"
+    "let-keywords"
+    "let-optionals"
+    "let-optionals*"
+    "let-values"
+    "receive"
+    "rec"
+    "rlet1"
+    "select-module"
+    "use"
+    "with-input-from-pipe"
+    "^" "^a" "^b" "^c" "^d" "^e" "^f" "^g" "^h" "^i" "^j" "^k" "^l" "^m" "^n" "^o" "^p" "^q"
+    "^r" "^s" "^t" "^v" "^x" "^y" "^z" "^w"
+    "with-error-handler"
+    "with-error-to-port"
+    "with-exception-handler"
+    "with-exception-handler"
+    "with-input-conversion"
+    "with-input-from-file"
+    "with-input-from-port"
+    "with-input-from-process"
+    "with-input-from-string"
+    "with-iterator"
+    "with-lock-file"
+    "with-locking-mutex"
+    "with-module"
+    "with-output-conversion"
+    "with-output-to-file"
+    "with-output-to-port"
+    "with-output-to-process"
+    "with-output-to-string"
+    "with-port-locking"
+    "with-ports"
+    "with-profiler"
+    "with-random-data-seed"
+    "with-signal-handlers"
+    "with-string-io"
+    "with-time-counter"))
+
 
 ;;; REPL startup
 
@@ -150,18 +227,21 @@
   (minimum-version geiser-gauche-minimum-version)
   (repl-startup geiser-gauche--startup)
   (prompt-regexp geiser-gauche--prompt-regexp)
-  (debugger-prompt-regexp nil) ;; geiser-gauche--debugger-prompt-regexp
+  (debugger-prompt-regexp nil)
+  ;; geiser-gauche--debugger-prompt-regexp
   ;; (enter-debugger geiser-gauche--enter-debugger)
   (marshall-procedure geiser-gauche--geiser-procedure)
   (find-module geiser-gauche--get-module)
-  ;; (enter-command geiser-gauche--enter-command)
+  (enter-command geiser-gauche--enter-command)
   (exit-command geiser-gauche--exit-command)
   (import-command geiser-gauche--import-command)
   (find-symbol-begin geiser-gauche--symbol-begin)
   (display-error geiser-gauche--display-error)
+  (binding-forms geiser-gauche--binding-forms)
+  (binding-forms* geiser-gauche--binding-forms*)
   ;; (external-help geiser-gauche--manual-look-up)
   ;; (check-buffer geiser-gauche--guess)
-  ;; (keywords geiser-gauche--keywords)
+  (keywords geiser-gauche--keywords)
   (case-sensitive geiser-gauche-case-sensitive-p))
 
 (geiser-impl--add-to-alist 'regexp "\\.scm$" 'gauche t)
