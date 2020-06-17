@@ -29,12 +29,19 @@
   (with-output-to-string
     (cut pprint (macroexpand form))))
 
+
 (define (geiser:eval module-name form . rest)
-  (let ((module (or (and (symbol? module-name )
+  rest
+  (let* ((output (open-output-string))
+         (module (or (and (symbol? module-name )
 			 (find-module module-name))
-		    (find-module 'user))))
-    (with-output-to-string
-      (cut eval form module))))
+		    (find-module 'user)))
+         (result (with-output-to-port output
+                   (lambda ()
+                     (eval form module)))))
+    (write `((result ,(write-to-string result))
+             (output . ,(get-output-string output))))))
+
 
 (define (geiser:autodoc ids . rest)
   (map (cut ~ <> 'info)
@@ -68,3 +75,4 @@
    (cut string-prefix? prefix <>)
    (map (^x (symbol->string (module-name x)))
 	(all-modules))))
+
