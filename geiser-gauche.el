@@ -59,7 +59,7 @@
     "-l" ,(expand-file-name "gauche/geiser.scm" geiser-scheme-dir)
     ,@(and (listp geiser-gauche-binary) (cdr geiser-gauche-binary))))
 
-(defconst geiser-gauche--prompt-regexp "> ")
+(defconst geiser-gauche--prompt-regexp "gosh\\(\\[[^(]+\\]\\)?> ") 
 
 
 ;;; Evaluation support:
