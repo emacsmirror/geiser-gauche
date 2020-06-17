@@ -30,8 +30,9 @@
     (cut pprint (macroexpand form))))
 
 (define (geiser:eval module-name form . rest)
-  (let ((module (or (find-module module-name)
-		    (current-module))))
+  (let ((module (or (and (symbol? module-name )
+			 (find-module module-name))
+		    (find-module 'user))))
     (with-output-to-string
       (cut eval form module))))
 
