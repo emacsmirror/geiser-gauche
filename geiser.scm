@@ -42,11 +42,6 @@
     (write `((result ,(write-to-string result))
              (output . ,(get-output-string output))))))
 
-
-(define (geiser:autodoc ids . rest)
-  (map (cut ~ <> 'info)
-       ids))
-
 (define (geiser:load-file filename)
   (load filename))
 
@@ -79,8 +74,42 @@
    (map (^x (symbol->string (module-name x)))
 	(all-modules))))
 
+;;; Autodoc
+
+(define (geiser:autodoc ids . rest)
+  (map (cut gauche-info <>)
+       ids))
+
+(define (gauche-info id)
+  (let ((module (find-module 'user)))
+    (if (global-variable-bound? 'user id)
+	(let1 obj (global-variable-ref (find-module 'user) id)
+	      (if (is-a? obj <procedure>)
+		  (process-info (~ obj 'info))
+		  `(,id)))
+	`(,id))))
+
+(define (process-info info)
+  (let* ((required '("required"))
+	 (optional '("optional"))
+	 (key '("key"))
+	 (section :required))
+    (dolist (x (cdr info))
+	    (case x
+	      ((:optional :key) (set! section x))
+	      ((:rest))
+	      (else (case section
+		      ((:optional) (push! optional x))
+		      ((:key) (push! key x))
+		      (else (push! required x))))))
+    `(,(car info) ("args"
+		   ,(map (cut reverse <>)
+			 (list required optional key)))
+      ("module" user))))
+
 ;; Further
 
 ;; TODO We add the load-path at the end. Is this correct?
 (define-macro (geiser:add-to-load-path dir)
   `(add-load-path ,dir :after))
+
