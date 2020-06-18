@@ -124,7 +124,7 @@
 (defconst geiser-gauche--binding-forms
   '("and-let" "and-let1" "let1" "if-let1" "rlet1" "receive" "fluid-let" "let-values"
     "^" "^a" "^b" "^c" "^d" "^e" "^f" "^g" "^h" "^i" "^j" "^k" "^l" "^m" "^n" "^o" "^p" "^q"
-    "^r" "^s" "^t" "^v" "^x" "^y" "^z" "^w" "rec"))
+    "^r" "^s" "^t" "^v" "^x" "^y" "^z" "^w" "^_" "rec"))
 
 (defconst geiser-gauche--binding-forms*
   '("and-let*" "let*-values" ))
@@ -162,7 +162,7 @@
     "use"
     "with-input-from-pipe"
     "^" "^a" "^b" "^c" "^d" "^e" "^f" "^g" "^h" "^i" "^j" "^k" "^l" "^m" "^n" "^o" "^p" "^q"
-    "^r" "^s" "^t" "^v" "^x" "^y" "^z" "^w"
+    "^r" "^s" "^t" "^v" "^x" "^y" "^z" "^w" "^_"
     "with-error-handler"
     "with-error-to-port"
     "with-exception-handler"
