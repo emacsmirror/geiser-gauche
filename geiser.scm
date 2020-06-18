@@ -10,13 +10,13 @@
    geiser:no-values
    geiser:completions
    geiser:module-completions
+   geiser:add-to-load-path
    ;; Missing functions:
    ;; geiser-start-server
    ;; geiser-object-signature
    ;; geiser-symbol-location
    ;; geiser-symbol-documentation
    ;; geiser-find-file
-   ;; geiser-add-to-load-path
    ;; geiser-compile-file
    ;; geiser-compile
    ;; geiser-module-path
@@ -79,3 +79,8 @@
    (map (^x (symbol->string (module-name x)))
 	(all-modules))))
 
+;; Further
+
+;; TODO We add the load-path at the end. Is this correct?
+(define-macro (geiser:add-to-load-path dir)
+  `(add-load-path ,dir :after))
