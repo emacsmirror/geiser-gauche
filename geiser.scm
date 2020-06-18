@@ -129,7 +129,7 @@
 	 (list required optional key))))
 
 (define (process-dotted-arg-info arg-info)
-  `(("required" ,@(dotted-list-head (cdr info)) "...")
+  `(("required" ,@(dotted-list-head arg-info) "...")
     ("optional")
     ("key")))
 
