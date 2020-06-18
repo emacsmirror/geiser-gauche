@@ -112,16 +112,18 @@
     ("module" user)))
 
 (define (process-normal-arg-info arg-info)
-  (let* ((required '("required"))
-	 (optional '("optional"))
-	 (key '("key"))
-	 (section :required))
+  (let ((required '("required"))
+	(optional '("optional"))
+	(key '("key"))
+	(section :required))
     (dolist (x arg-info)
 	    (if (memq x '(:optional :key :rest))
 		(set! section x)
 		(case section
 		  ((:optional) (push! optional x))
-		  ((:key) (push! key x))
+		  ((:key) (push! key
+				 (let1 sym (if (pair? x) (car x) x)
+				       (symbol-append ': sym))))
 		  ((:rest) (push! required "..."))
 		  (else (push! required x)))))
     (map (cut reverse <>)
