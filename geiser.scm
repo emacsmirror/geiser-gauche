@@ -63,8 +63,11 @@
    (remove
     (^x (or (string=? x "")
 	    (string-prefix? "(" x)
-	    (not (global-variable-bound? (current-module)
-					 (string->symbol x)))))
+	    ;; TODO check whether it is bound in the current module?
+	    ;; probably needs changing this into a macro...
+	    ;; (not (global-variable-bound? (current-module)
+	    ;; 				 (string->symbol x)))
+	    ))
     (string-split
      (with-output-to-string
        (cut apropos (string->regexp (string-append "^" prefix))))
