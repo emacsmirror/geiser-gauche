@@ -116,15 +116,13 @@
 	 (key '("key"))
 	 (section :required))
     (dolist (x arg-info)
-	    (case x
-	      ((:optional :key) (set! section x))
-	      ((:rest))
-	      (else (case section
-		      ((:optional) (push! optional x))
-		      ((:key) (push! key x))
-		      (else (if (symbol=? x 'args)
-				(push! required "...")
-				(push! required x)))))))
+	    (if (memq x '(:optional :key :rest))
+		(set! section x)
+		(case section
+		  ((:optional) (push! optional x))
+		  ((:key) (push! key x))
+		  ((:rest) (push! required "..."))
+		  (else (push! required x)))))
     (map (cut reverse <>)
 	 (list required optional key))))
 
