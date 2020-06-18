@@ -25,6 +25,17 @@
 
 (select-module geiser)
 
+;; Utility functions
+
+;; Get the list of elements before the dot in a "dotted list" of the form
+;; (x_1 x_2 ... x_n . y)
+(define (dotted-list-head dl)
+  (if (pair? (cdr dl))
+      (cons (car dl) (dotted-list-head (cdr dl)))
+      (list (car dl))))
+
+
+
 (define (geiser:macroexpand form . rest)
   (with-output-to-string
     (cut pprint (macroexpand form))))
@@ -86,39 +97,41 @@
 	(let1 obj (global-variable-ref (find-module 'user) id)
 	      (if (is-a? obj <procedure>)
 		  (process-info (~ obj 'info))
-		  `(,id)))
+		  `(,id ("args" (("required" "...")))
+			("module" gauche))))
 	`(,id))))
 
 (define (process-info info)
   `(,(car info)
     ("args"
-     ,(if (list? info)
-	  (let* ((required '("required"))
-		 (optional '("optional"))
-		 (key '("key"))
-		 (section :required))
-	    (dolist (x (cdr info))
-		    (case x
-		      ((:optional :key) (set! section x))
-		      ((:rest))
-		      (else (case section
-			      ((:optional) (push! optional x))
-			      ((:key) (push! key x))
-			      (else (if (symbol=? x 'args)
-					(push! required "...")
-					(push! required x)))))))
-
-	    (map (cut reverse <>)
-		 (list required optional key)))
-	  `(("required" ,@(process-dotted-info (cdr info)) "...")
-	    ("optional")
-	    ("key"))))
+     ,((if (list? info)
+	   process-normal-arg-info
+	   process-dotted-arg-info)
+       (cdr info)))
     ("module" user)))
 
-(define (process-dotted-info info)
-  (if (pair? (cdr info))
-      (cons (car info) (process-dotted-info (cdr info)))
-      (list (car info))))
+(define (process-normal-arg-info arg-info)
+  (let* ((required '("required"))
+	 (optional '("optional"))
+	 (key '("key"))
+	 (section :required))
+    (dolist (x arg-info)
+	    (case x
+	      ((:optional :key) (set! section x))
+	      ((:rest))
+	      (else (case section
+		      ((:optional) (push! optional x))
+		      ((:key) (push! key x))
+		      (else (if (symbol=? x 'args)
+				(push! required "...")
+				(push! required x)))))))
+    (map (cut reverse <>)
+	 (list required optional key))))
+
+(define (process-dotted-arg-info arg-info)
+  `(("required" ,@(dotted-list-head (cdr info)) "...")
+    ("optional")
+    ("key")))
 
 ;; Further
 
