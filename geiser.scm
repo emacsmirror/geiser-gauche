@@ -90,22 +90,35 @@
 	`(,id))))
 
 (define (process-info info)
-  (let* ((required '("required"))
-	 (optional '("optional"))
-	 (key '("key"))
-	 (section :required))
-    (dolist (x (cdr info))
-	    (case x
-	      ((:optional :key) (set! section x))
-	      ((:rest))
-	      (else (case section
-		      ((:optional) (push! optional x))
-		      ((:key) (push! key x))
-		      (else (push! required x))))))
-    `(,(car info) ("args"
-		   ,(map (cut reverse <>)
-			 (list required optional key)))
-      ("module" user))))
+  `(,(car info)
+    ("args"
+     ,(if (list? info)
+	  (let* ((required '("required"))
+		 (optional '("optional"))
+		 (key '("key"))
+		 (section :required))
+	    (dolist (x (cdr info))
+		    (case x
+		      ((:optional :key) (set! section x))
+		      ((:rest))
+		      (else (case section
+			      ((:optional) (push! optional x))
+			      ((:key) (push! key x))
+			      (else (if (symbol=? x 'args)
+					(push! required "...")
+					(push! required x)))))))
+
+	    (map (cut reverse <>)
+		 (list required optional key)))
+	  `(("required" ,@(process-dotted-info (cdr info)) "...")
+	    ("optional")
+	    ("key"))))
+    ("module" user)))
+
+(define (process-dotted-info info)
+  (if (pair? (cdr info))
+      (cons (car info) (process-dotted-info (cdr info)))
+      (list (car info))))
 
 ;; Further
 
