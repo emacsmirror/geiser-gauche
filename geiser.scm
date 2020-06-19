@@ -34,12 +34,17 @@
       (cons (car dl) (dotted-list-head (cdr dl)))
       (list (car dl))))
 
-;; Get the first leaf of a tree
+;; Replace the first leaf of a tree with a coloned version
 (define (get-first-leaf tree)
   (if (pair? tree)
       (get-first-leaf (car tree))
       tree))
 
+;; Return coloned version of symbol
+(define (coloned-sym sym)
+  (if (string-prefix? ":" (symbol->string sym))
+      sym
+      (symbol-append ': sym)))
 
 
 (define (geiser:macroexpand form . rest)
@@ -121,17 +126,20 @@
   (let ((required '("required"))
 	(optional '("optional"))
 	(key '("key"))
-	(section :required))
+	(section :required)
+	(arg-no 0))
     (dolist (x arg-info)
 	    (if (memq x '(:optional :key :rest))
 		(set! section x)
-		(case section
-		  ((:optional) (push! optional x))
-		  ((:key) (push! key
-				 (let1 sym (get-first-leaf x)
-				       (symbol-append ': sym))))
-		  ((:rest) (push! required "..."))
-		  (else (push! required x)))))
+		(begin
+		  (inc! arg-no)
+		  (case section
+		    ((:optional) (push! optional x))
+		    ((:key) (push! key
+				   (cons (coloned-sym (get-first-leaf x))
+					 arg-no)))
+		    ((:rest) (push! required "..."))
+		    (else (push! required x))))))
     (map (cut reverse <>)
 	 (list required optional key))))
 
