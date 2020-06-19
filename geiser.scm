@@ -34,7 +34,7 @@
       (cons (car dl) (dotted-list-head (cdr dl)))
       (list (car dl))))
 
-;; Replace the first leaf of a tree with a coloned version
+;; Return the first leaf of a tree   
 (define (get-first-leaf tree)
   (if (pair? tree)
       (get-first-leaf (car tree))
