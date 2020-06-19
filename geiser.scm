@@ -45,19 +45,25 @@
   (if (string-prefix? ":" (symbol->string sym))
       sym
       (symbol-append ': sym)))
+
+;; Return the id of a module as symbol
+(define (module-id module)
+  (let ((module-repr (write-to-string module)))
+    (string->symbol
+     (substring module-repr 9 (- (string-length module-repr) 1)))))
 
 
 (define (geiser:macroexpand form . rest)
   (with-output-to-string
     (cut pprint (macroexpand form))))
 
-
 (define (geiser:eval module-name form . rest)
   rest
   (let* ((output (open-output-string))
          (module (or (and (symbol? module-name )
-			 (find-module module-name))
-		    (find-module 'user)))
+			  (find-module module-name))
+		     ;; TODO or should we eval in the currently selected module?
+		     (find-module 'user)))
          (result (with-output-to-port output
                    (lambda ()
                      (eval form module)))))
@@ -100,27 +106,31 @@
 ;;; Autodoc
 
 (define (geiser:autodoc ids . rest)
-  (map (cut gauche-info <>)
-       ids))
+  (concatenate
+   (map (cut gauche-info <>)
+	ids)))
 
 (define (gauche-info id)
-  (let ((module (find-module 'user)))
-    (if (global-variable-bound? 'user id)
-	(let1 obj (global-variable-ref (find-module 'user) id)
-	      (if (is-a? obj <procedure>)
-		  (process-info (~ obj 'info))
-		  `(,id ("args" (("required" "...")))
-			("module" gauche))))
-	`(,id))))
+  (filter-map (cut gauche-info-in-module id <>)
+	      (all-modules)))
 
-(define (process-info info)
+(define (gauche-info-in-module id module)
+  (if (hash-table-get (module-table module) id #f)
+      (let1 obj (global-variable-ref module id)
+	    (if (is-a? obj <procedure>)
+		(process-info (~ obj 'info) module)
+		`(,id ("args" (("required" "...")))
+		      ("module" ,(module-id module)))))
+      #f))
+
+(define (process-info info module)
   `(,(car info)
     ("args"
      ,((if (list? info)
 	   process-normal-arg-info
 	   process-dotted-arg-info)
        (cdr info)))
-    ("module" user)))
+    ("module" ,(module-id module))))
 
 (define (process-normal-arg-info arg-info)
   (let ((required '("required"))
