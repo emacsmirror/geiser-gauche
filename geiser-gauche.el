@@ -48,8 +48,18 @@
 (geiser-custom--defcustom geiser-gauche-extra-keywords nil
   "Extra keywords highlighted in Gauche scheme buffers."
   :type '(repeat string)
-  :group 'geiser-chicken)
+  :group 'geiser-gauche)
 
+(geiser-custom--defcustom geiser-gauche-manual-lookup-nodes
+    '("Gauche")
+  "List of info nodes that, when present, are used for manual lookups"
+  :type '(repeat string)
+  :group 'geiser-gauche)
+
+(geiser-custom--defcustom geiser-gauche-manual-lookup-other-window-p t
+  "Non-nil means pop up the Info buffer in another window."
+  :type 'boolean
+  :group 'geiser-gauche)
 
 ;;; REPL support:
 
@@ -206,17 +216,34 @@
   (and key (message msg) nil))
 
 
-
 ;;;  Manual look up
 
-(defun gauche--manual-look-up (id mod)
+(defun geiser-gauche--info-spec (&optional nodes)
+  (let* ((nrx "^[       ]+-+ [^:]+:[    ]*")
+         (drx "\\b")
+         (res (when (Info-find-file "gauche-refe" t)
+                `(("(gauche-refe)Function and Syntax Index" nil ,nrx ,drx)))))
+    (dolist (node (or nodes geiser-gauche-manual-lookup-nodes) res)
+      (when (Info-find-file node t)
+        (mapc (lambda (idx)
+                (add-to-list 'res
+                             (list (format "(%s)%s" node idx) nil nrx drx)))
+              '("Function and Syntax Index" "Module Index" "Class Index"
+		"Variable Index"))))))
+
+
+(info-lookup-add-help :topic 'symbol :mode 'geiser-gauche-mode
+                      :ignore-case nil
+                      :regexp "[^()`',\"        \n]+"
+                      :doc-spec (geiser-gauche--info-spec))
+
+(defun geiser-gauche--manual-look-up (id mod)
   (let ((info-lookup-other-window-flag
          geiser-gauche-manual-lookup-other-window-p))
     (info-lookup-symbol (symbol-name id) 'geiser-gauche-mode))
   (when geiser-gauche-manual-lookup-other-window-p
     (switch-to-buffer-other-window "*info*"))
   (search-forward (format "%s" id) nil t))
-
 
 ;;; Implementation definition:
 
@@ -239,7 +266,7 @@
   (display-error geiser-gauche--display-error)
   (binding-forms geiser-gauche--binding-forms)
   (binding-forms* geiser-gauche--binding-forms*)
-  ;; (external-help geiser-gauche--manual-look-up)
+  (external-help geiser-gauche--manual-look-up)
   ;; (check-buffer geiser-gauche--guess)
   (keywords geiser-gauche--keywords)
   (case-sensitive geiser-gauche-case-sensitive-p))
