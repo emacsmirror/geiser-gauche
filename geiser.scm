@@ -34,6 +34,12 @@
       (cons (car dl) (dotted-list-head (cdr dl)))
       (list (car dl))))
 
+;; Get the first leaf of a tree
+(define (get-first-leaf tree)
+  (if (pair? tree)
+      (get-first-leaf (car tree))
+      tree))
+
 
 
 (define (geiser:macroexpand form . rest)
@@ -122,7 +128,7 @@
 		(case section
 		  ((:optional) (push! optional x))
 		  ((:key) (push! key
-				 (let1 sym (if (pair? x) (car x) x)
+				 (let1 sym (get-first-leaf x)
 				       (symbol-append ': sym))))
 		  ((:rest) (push! required "..."))
 		  (else (push! required x)))))
