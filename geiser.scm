@@ -85,12 +85,7 @@
   (delete-duplicates
    (remove
     (^x (or (string=? x "")
-	    (string-prefix? "(" x)
-	    ;; TODO check whether it is bound in the current module?
-	    ;; probably needs changing this into a macro...
-	    ;; (not (global-variable-bound? (current-module)
-	    ;; 				 (string->symbol x)))
-	    ))
+	    (string-prefix? "(" x)))
     (string-split
      (with-output-to-string
        (cut apropos (string->regexp (string-append "^" prefix))))
@@ -106,13 +101,13 @@
 ;;; Autodoc
 
 (define (geiser:autodoc ids . rest)
-  (concatenate
-   (map (cut gauche-info <>)
-	ids)))
+  (map (cut gauche-info <>)
+       ids))
 
 (define (gauche-info id)
-  (filter-map (cut gauche-info-in-module id <>)
-	      (all-modules)))
+  (car 
+   (sort (filter-map (cut gauche-info-in-module id <>) (all-modules))
+	 > (^x (length (car (cadadr x)))))))
 
 (define (gauche-info-in-module id module)
   (if (hash-table-get (module-table module) id #f)
