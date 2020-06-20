@@ -216,7 +216,8 @@
   (and key (message msg) nil))
 
 
-;;;  Manual look up
+;;; Manual look up
+;;; code taken from the Guile implementation 
 
 (defun geiser-gauche--info-spec (&optional nodes)
   (let* ((nrx "^[       ]+-+ [^:]+:[    ]*")
