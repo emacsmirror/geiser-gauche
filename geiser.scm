@@ -11,11 +11,11 @@
    geiser:completions
    geiser:module-completions
    geiser:add-to-load-path
+   geiser:symbol-documentation
    ;; Missing functions:
    ;; geiser-start-server
    ;; geiser-object-signature
    ;; geiser-symbol-location
-   ;; geiser-symbol-documentation
    ;; geiser-find-file
    ;; geiser-compile-file
    ;; geiser-compile
@@ -78,7 +78,7 @@
 
 (define (geiser:no-values)
   (values))
-
+
 ;;; Completions
 
 (define (geiser:completions prefix)
@@ -96,66 +96,106 @@
    (cut string-prefix? prefix <>)
    (map (^x (symbol->string (module-name x)))
 	(all-modules))))
+
+;; Symbol documentation 
+
+;; Return the signature of SYMBOL in MODULE if there is one, SYMBOL if the
+;; symbol is bound without one, #f otherwise.
+(define (signature-in-module symbol module)
+  (if (hash-table-get (module-table module) symbol #f)
+      (let1 obj (global-variable-ref module symbol)
+	    (if (is-a? obj <procedure>)
+		(~ obj 'info)
+		symbol))
+      #f))
+
+;; Return a list of (signature module) pairs for all bindings of SYMBOL with
+;; signature. If SYMBOL is bound without the signature then the car is SYMBOL.
+(define (signatures symbol)
+  (let ((signatures-w-modules
+	 (map (^x (cons (signature-in-module symbol x)
+			(module-id x)))
+	      (all-modules))))
+    (remove (^x (not (car x)))
+	    signatures-w-modules)))
+
+;; Format a signature list for presenting with symbol documentation
+(define (format-signatures sigs)
+  (map (^x `(,(cdr x) ,(if (pair? (car x))
+			   (car x)
+			   `(,(car x) "..."))))
+       sigs))
+
+(define (geiser:symbol-documentation symbol . rest)
+  `(("signature" ,(format-signatures (signatures symbol)))))
 
 
 ;;; Autodoc
 
-(define (geiser:autodoc ids . rest)
-  (map (cut gauche-info <>)
-       ids))
+(define (geiser:autodoc symbols . rest)
+  (map (cut formatted-autodoc <>)
+       symbols))
 
-(define (gauche-info id)
-  (car 
-   (sort (filter-map (cut gauche-info-in-module id <>) (all-modules))
-	 > (^x (length (car (cadadr x)))))))
+(define (formatted-autodoc symbol)
+  (format-autodoc-signature (autodoc-signature symbol)))
 
-(define (gauche-info-in-module id module)
-  (if (hash-table-get (module-table module) id #f)
-      (let1 obj (global-variable-ref module id)
-	    (if (is-a? obj <procedure>)
-		(process-info (~ obj 'info) module)
-		`(,id ("args" (("required" "...")))
-		      ("module" ,(module-id module)))))
-      #f))
+(define (format-autodoc-signature as)
+  (if (symbol? as)
+      (list as)
+      (let ((sig (car as))
+	    (module (cdr as)))
+	(if (symbol? sig)
+	    `(,sig ("args" (("required" "...")))
+		   ("module" ,module))
+	    (signature->autodoc sig module)))))
 
-(define (process-info info module)
-  `(,(car info)
+;; Return a (signature module) pair to be displayed in autodoc for SYMBOL.
+;; Return a (SYMBOL module) pair if SYMBOL is bound without signature and 
+;; SYMBOL if no binding was found.
+(define (autodoc-signature symbol)
+  (let1 sigs (signatures symbol)
+	(if (not (null? sigs))
+	    (or (find (^x ($ not $ symbol? $ car x)) sigs)
+		(car sigs))
+	    symbol)))
+
+;; Format a signature for Geiser autodoc
+(define (signature->autodoc signature module-id)
+  (define (process-normal-arg-info arg-info)
+    (let ((required '("required"))
+	  (optional '("optional"))
+	  (key '("key"))
+	  (section :required)
+	  (arg-no 0))
+      (dolist (x arg-info)
+	      (if (memq x '(:optional :key :rest))
+		  (set! section x)
+		  (begin
+		    (inc! arg-no)
+		    (case section
+		      ((:optional) (push! optional x))
+		      ((:key) (push! key
+				     (cons (coloned-sym (get-first-leaf x))
+					   arg-no)))
+		      ((:rest) (push! required "..."))
+		      (else (push! required x))))))
+      (map (cut reverse <>)
+	   (list required optional key))))
+  (define (process-dotted-arg-info arg-info)
+    `(("required" ,@(dotted-list-head arg-info) "...")
+      ("optional")
+      ("key")))
+  `(,(car signature)
     ("args"
-     ,((if (list? info)
+     ,((if (list? signature)
 	   process-normal-arg-info
 	   process-dotted-arg-info)
-       (cdr info)))
-    ("module" ,(module-id module))))
+       (cdr signature)))
+    ("module" ,module-id)))
 
-(define (process-normal-arg-info arg-info)
-  (let ((required '("required"))
-	(optional '("optional"))
-	(key '("key"))
-	(section :required)
-	(arg-no 0))
-    (dolist (x arg-info)
-	    (if (memq x '(:optional :key :rest))
-		(set! section x)
-		(begin
-		  (inc! arg-no)
-		  (case section
-		    ((:optional) (push! optional x))
-		    ((:key) (push! key
-				   (cons (coloned-sym (get-first-leaf x))
-					 arg-no)))
-		    ((:rest) (push! required "..."))
-		    (else (push! required x))))))
-    (map (cut reverse <>)
-	 (list required optional key))))
-
-(define (process-dotted-arg-info arg-info)
-  `(("required" ,@(dotted-list-head arg-info) "...")
-    ("optional")
-    ("key")))
-
+
 ;; Further
 
 ;; TODO We add the load-path at the end. Is this correct?
 (define-macro (geiser:add-to-load-path dir)
   `(add-load-path ,dir :after))
-
