@@ -80,6 +80,9 @@
 ;;; Evaluation support:
 
 (defun geiser-gauche--geiser-procedure (proc &rest args)
+  ;; (with-current-buffer "*scratch*"
+  ;;   (goto-char (point-max))
+  ;;   (insert (format "\nGeiser FORM: %s" args)))
   (cl-case proc
     ((eval compile)
      (let ((form (mapconcat 'identity (cdr args) " "))
