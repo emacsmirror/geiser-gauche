@@ -12,6 +12,7 @@
    geiser:module-completions
    geiser:add-to-load-path
    geiser:symbol-documentation
+   geiser:module-location
    ;; Missing functions:
    ;; geiser-start-server
    ;; geiser-object-signature
@@ -19,8 +20,6 @@
    ;; geiser-find-file
    ;; geiser-compile-file
    ;; geiser-compile
-   ;; geiser-module-path
-   ;; geiser-module-location
    ))
 
 (select-module geiser)
@@ -196,6 +195,15 @@
 
 ;; Further
 
+(define (geiser:module-location m)
+  (and (find-module m)
+       (let1 paths (map cdr (library-fold m acons '()))
+	     (if (pair? paths)
+		 `(("file" . ,(car paths)) ("line") ("column"))
+		 ()))))
+
+
 ;; TODO We add the load-path at the end. Is this correct?
 (define-macro (geiser:add-to-load-path dir)
   `(add-load-path ,dir :after))
+
