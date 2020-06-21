@@ -102,7 +102,7 @@
        (format "(geiser:%s %s)" proc form)))))
 
 (defconst geiser-gauche--module-re
-  "(define-module +\\(\\w+\\)")
+  "(define-module +\\(([^)]*)\\)")
 
 (defun geiser-gauche--get-module (&optional module)
   (cond ((null module)
