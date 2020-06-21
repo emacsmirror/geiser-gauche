@@ -85,21 +85,21 @@
   ;;   (insert (format "\nGeiser PROC: %s, ARGS: %s \ntranslated to:\n" proc args))
   ;;   (insert (let ((form (mapconcat 'identity args " ")))
   ;; 	     (format "(eval '(geiser:%s %s) (find-module 'geiser))" proc form))))
-  (cl-case proc
-    ;; Eval and compile are (module) context sensitive
-    ((eval compile)
-     (let ((form (mapconcat 'identity (cdr args) " "))
-           (module (cond ((string-equal "'()" (car args))
-                          "'()")
-                         ((and (car args))
-                          (concat "'" (car args)))
-                         (t
-                          "#f"))))
-       (format "(eval '(geiser:eval %s '%s) (find-module 'geiser))" module form)))
-    ;; The rest of the commands are all evaluated in the geiser module 
-    (t
-     (let ((form (mapconcat 'identity args " ")))
-       (format "(eval '(geiser:%s %s) (find-module 'geiser))" proc form)))))
+  (let ((module (cond ((string-equal "'()" (car args))
+			   "'()")
+			  ((and (car args))
+			   (concat "'" (car args)))
+			  (t
+			   "#f"))))
+   (cl-case proc
+     ;; Eval and compile are (module) context sensitive
+     ((eval compile)
+      (let ((form (mapconcat 'identity (cdr args) " ")))
+	(format "(eval '(geiser:eval %s '%s) (find-module 'geiser))" module form)))
+     ;; The rest of the commands are all evaluated in the geiser module 
+     (t
+      (let ((form (mapconcat 'identity args " ")))
+	(format "(eval '(geiser:%s %s %s) (find-module 'geiser))" proc form module))))))
 
 (defconst geiser-gauche--module-re
   "(define-module +\\([[:alnum:].]+\\)")
