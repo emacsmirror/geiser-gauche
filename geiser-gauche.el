@@ -213,7 +213,7 @@
 (defun geiser-gauche--startup (remote)
   (let ((geiser-log-verbose-p t))
     (compilation-setup t)
-    (geiser-eval--send/wait "(import geiser)(newline)")))
+    (geiser-eval--send/wait "(newline)")))
 
 (defun geiser-gauche--display-error (module key msg)
   (and key (message msg) nil))
