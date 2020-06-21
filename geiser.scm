@@ -69,10 +69,10 @@
     (write `((result ,(write-to-string result))
              (output . ,(get-output-string output))))))
 
-(define (geiser:load-file filename)
+(define (geiser:load-file filename . rest)
   (geiser:eval 'user `(load ,filename)))
 
-(define (geiser:compile-file filename)
+(define (geiser:compile-file filename . rest)
   (geiser:load-file  filename))
 
 (define (geiser:newline . rest)
@@ -93,7 +93,7 @@
        (cut apropos (string->regexp (string-append "^" prefix))))
      #/\s+/))))
 
-(define (geiser:module-completions prefix)
+(define (geiser:module-completions prefix . rest)
   (filter
    (cut string-prefix? prefix <>)
    (map (^x (symbol->string (module-name x)))
@@ -201,7 +201,7 @@
 
 ;; Further
 
-(define (geiser:module-location m)
+(define (geiser:module-location m . rest)
   (and (find-module m)
        (let1 paths (map cdr (library-fold m acons '()))
 	     (if (pair? paths)
