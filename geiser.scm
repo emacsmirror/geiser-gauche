@@ -57,8 +57,8 @@
     (cut pprint (macroexpand form))))
 
 (define (geiser:eval module-name form . rest)
-  (call-with-output-file "/tmp/gauche.log"
-    (^o (format o "FORM: ~s, REST: ~s" form rest)))
+  ;; (call-with-output-file "/tmp/gauche.log" 
+  ;;   (^o (format o "FORM: ~s, REST: ~s" form rest)))
   (let* ((output (open-output-string))
          (module (or (and (symbol? module-name )
 			  (find-module module-name))
@@ -136,11 +136,11 @@
 ;;; Autodoc
 
 (define (geiser:autodoc symbols . rest)
-  (map (cut formatted-autodoc <>)
+  (map (cut formatted-autodoc <> (car rest))
        symbols))
 
-(define (formatted-autodoc symbol)
-  (format-autodoc-signature (autodoc-signature symbol)))
+(define (formatted-autodoc symbol cur-module)
+  (format-autodoc-signature (autodoc-signature symbol cur-module)))
 
 (define (format-autodoc-signature as)
   (if (symbol? as)
@@ -155,10 +155,14 @@
 ;; Return a (signature module) pair to be displayed in autodoc for SYMBOL.
 ;; Return a (SYMBOL module) pair if SYMBOL is bound without signature and 
 ;; SYMBOL if no binding was found.
-(define (autodoc-signature symbol)
+(define (autodoc-signature symbol cur-module)
   (let1 sigs (signatures symbol)
 	(if (not (null? sigs))
-	    (or (find (^x ($ not $ symbol? $ car x)) sigs)
+	    ;; Prefer the binding which visible from the current module
+	    (or (find (^x (eq? (global-variable-ref cur-module symbol #f)
+			       (global-variable-ref (cdr x) symbol #f)))
+		      sigs)
+		(find (^x ($ not $ symbol? $ car x)) sigs)
 		(car sigs))
 	    symbol)))
 

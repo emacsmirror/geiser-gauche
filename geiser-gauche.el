@@ -95,11 +95,15 @@
 			 (t
 			  "#f")))
 	   (form (mapconcat 'identity (cdr args) " ")))
-       (format "(eval '(geiser:eval %s '%s) (find-module 'geiser))" module form)))
+       ;; {{cur-module}} is replaced by the current module for the commands
+       (replace-regexp-in-string
+	"{{cur-module}}" module
+	(format "(eval '(geiser:eval %s '%s) (find-module 'geiser))" module form))))
     ;; The rest of the commands are all evaluated in the geiser module 
     (t
      (let ((form (mapconcat 'identity args " ")))
-       (format "(eval '(geiser:%s %s) (find-module 'geiser))" proc form)))))
+       ;; {{cur-module}} will be replaced by the current module when eval is called
+       (format "(eval '(geiser:%s %s {{cur-module}}) (find-module 'geiser))" proc form)))))
 
 (defconst geiser-gauche--module-re
   "(define-module +\\([[:alnum:].]+\\)")
