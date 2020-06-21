@@ -82,8 +82,11 @@
 (defun geiser-gauche--geiser-procedure (proc &rest args)
   ;; (with-current-buffer "*scratch*"
   ;;   (goto-char (point-max))
-  ;;   (insert (format "\nGeiser FORM: %s" args)))
+  ;;   (insert (format "\nGeiser PROC: %s, ARGS: %s \ntranslated to:\n" proc args))
+  ;;   (insert (let ((form (mapconcat 'identity args " ")))
+  ;; 	     (format "(eval '(geiser:%s %s) (find-module 'geiser))" proc form))))
   (cl-case proc
+    ;; Eval and compile are (module) context sensitive
     ((eval compile)
      (let ((form (mapconcat 'identity (cdr args) " "))
            (module (cond ((string-equal "'()" (car args))
@@ -93,13 +96,10 @@
                          (t
                           "#f"))))
        (format "(eval '(geiser:eval %s '%s) (find-module 'geiser))" module form)))
-    ((load-file compile-file)
-     (format "(geiser:load-file %s)" (car args)))
-    ((no-values)
-     "(geiser:no-values)")
+    ;; The rest of the commands are all evaluated in the geiser module 
     (t
      (let ((form (mapconcat 'identity args " ")))
-       (format "(geiser:%s %s)" proc form)))))
+       (format "(eval '(geiser:%s %s) (find-module 'geiser))" proc form)))))
 
 (defconst geiser-gauche--module-re
   "(define-module +\\([[:alnum:].]+\\)")

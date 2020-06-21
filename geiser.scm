@@ -7,6 +7,7 @@
    geiser:newline
    geiser:autodoc
    geiser:load-file
+   geiser:compile-file
    geiser:no-values
    geiser:completions
    geiser:module-completions
@@ -18,7 +19,6 @@
    ;; geiser:object-signature
    ;; geiser:symbol-location
    ;; geiser:find-file
-   ;; geiser:compile-file
    ;; geiser:compile
    ))
 
@@ -70,17 +70,20 @@
              (output . ,(get-output-string output))))))
 
 (define (geiser:load-file filename)
-  (load filename))
+  (geiser:eval 'user `(load ,filename)))
 
-(define (geiser:newline)
+(define (geiser:compile-file filename)
+  (geiser:load-file  filename))
+
+(define (geiser:newline . rest)
   (newline))
 
-(define (geiser:no-values)
+(define (geiser:no-values . rest)
   (values))
 
 ;;; Completions
 
-(define (geiser:completions prefix)
+(define (geiser:completions prefix . rest)
   (delete-duplicates
    (remove
     (^x (or (string=? x "")
@@ -209,4 +212,3 @@
 ;; TODO We add the load-path at the end. Is this correct?
 (define-macro (geiser:add-to-load-path dir)
   `(add-load-path ,dir :after))
-
