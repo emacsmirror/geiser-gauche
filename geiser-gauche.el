@@ -92,7 +92,7 @@
                           (concat "'" (car args)))
                          (t
                           "#f"))))
-       (format "(geiser:eval %s '%s)" module form)))
+       (format "(eval '(geiser:eval %s '%s) (find-module 'geiser))" module form)))
     ((load-file compile-file)
      (format "(geiser:load-file %s)" (car args)))
     ((no-values)
@@ -102,7 +102,7 @@
        (format "(geiser:%s %s)" proc form)))))
 
 (defconst geiser-gauche--module-re
-  "(define-module +\\(([^)]*)\\)")
+  "(define-module +\\([[:alnum:].]+\\)")
 
 (defun geiser-gauche--get-module (&optional module)
   (cond ((null module)
