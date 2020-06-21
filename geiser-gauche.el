@@ -248,6 +248,19 @@
   (when geiser-gauche-manual-lookup-other-window-p
     (switch-to-buffer-other-window "*info*"))
   (search-forward (format "%s" id) nil t))
+
+
+;;; Guess whether buffer is Gauche
+;;; adapted from geiser-chicken
+
+(defconst geiser-gauche--guess-re
+  (regexp-opt '("gauche" "gosh")))
+
+(defun geiser-gauche--guess ()
+  (save-excursion
+    (goto-char (point-min))
+    (re-search-forward geiser-gauche--guess-re nil t)))
+
 
 ;;; Implementation definition:
 
@@ -271,7 +284,7 @@
   (binding-forms geiser-gauche--binding-forms)
   (binding-forms* geiser-gauche--binding-forms*)
   (external-help geiser-gauche--manual-look-up)
-  ;; (check-buffer geiser-gauche--guess)
+  (check-buffer geiser-gauche--guess)
   (keywords geiser-gauche--keywords)
   (case-sensitive geiser-gauche-case-sensitive-p))
 
