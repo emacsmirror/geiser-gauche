@@ -14,12 +14,12 @@
    geiser:symbol-documentation
    geiser:module-location
    ;; Missing functions:
-   ;; geiser-start-server
-   ;; geiser-object-signature
-   ;; geiser-symbol-location
-   ;; geiser-find-file
-   ;; geiser-compile-file
-   ;; geiser-compile
+   ;; geiser:start-server
+   ;; geiser:object-signature
+   ;; geiser:symbol-location
+   ;; geiser:find-file
+   ;; geiser:compile-file
+   ;; geiser:compile
    ))
 
 (select-module geiser)
@@ -160,6 +160,7 @@
 
 ;; Format a signature for Geiser autodoc
 (define (signature->autodoc signature module-id)
+  
   (define (process-normal-arg-info arg-info)
     (let ((required '("required"))
 	  (optional '("optional"))
@@ -180,10 +181,12 @@
 		      (else (push! required x))))))
       (map (cut reverse <>)
 	   (list required optional key))))
+  
   (define (process-dotted-arg-info arg-info)
     `(("required" ,@(dotted-list-head arg-info) "...")
       ("optional")
       ("key")))
+  
   `(,(car signature)
     ("args"
      ,((if (list? signature)
