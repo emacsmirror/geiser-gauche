@@ -57,7 +57,8 @@
     (cut pprint (macroexpand form))))
 
 (define (geiser:eval module-name form . rest)
-  rest
+  (call-with-output-file "/tmp/gauche.log"
+    (^o (format o "FORM: ~s, REST: ~s" form rest)))
   (let* ((output (open-output-string))
          (module (or (and (symbol? module-name )
 			  (find-module module-name))
