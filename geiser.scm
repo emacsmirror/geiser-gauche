@@ -62,7 +62,6 @@
   (let* ((output (open-output-string))
          (module (or (and (symbol? module-name )
 			  (find-module module-name))
-		     ;; TODO or should we eval in the currently selected module?
 		     (find-module 'user)))
          (result (with-output-to-port output
                    (lambda ()
