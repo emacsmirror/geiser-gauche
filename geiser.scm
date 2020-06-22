@@ -26,7 +26,7 @@
 
 ;; Utility functions
 
-;; Get the list of elements before the dot in a "dotted list" of the form
+;; Return the list of elements before the dot in a "dotted list" of the form
 ;; (x_1 x_2 ... x_n . y)
 (define (dotted-list-head dl)
   (if (pair? (cdr dl))
@@ -39,7 +39,7 @@
       (get-first-leaf (car tree))
       tree))
 
-;; Return coloned version of symbol
+;; Add a colon at the beginning to a symbol
 (define (coloned-sym sym)
   (if (string-prefix? ":" (symbol->string sym))
       sym
@@ -111,9 +111,10 @@
 		symbol))
       #f))
 
-;; Return a list of (signature module) pairs for all bindings of SYMBOL with
-;; signature. If SYMBOL is bound without the signature then the car is SYMBOL.
-(define (signatures symbol)
+;; Return a list of symbol-infos, i.e., (SIGNATURE-OR-SYMBOL MODULE) pairs for
+;; all bindings of SYMBOL. SIGNATURE-OR-SYMBOL is the signature of SYMBOL in
+;; MODULE if it can be found, and SYMBOL otherwise.
+(define (symbol-infos symbol)
   (let ((signatures-w-modules
 	 (map (^x (cons (signature-in-module symbol x)
 			(module-id x)))
@@ -121,15 +122,15 @@
     (remove (^x (not (car x)))
 	    signatures-w-modules)))
 
-;; Format a signature list for presenting with symbol documentation
-(define (format-signatures sigs)
+;; Format a symbol-info list for presenting with symbol documentation
+(define (format-symbol-infos symbol-infos)
   (map (^x `(,(cdr x) ,(if (pair? (car x))
 			   (car x)
 			   `(,(car x) "..."))))
-       sigs))
+       symbol-infos))
 
 (define (geiser:symbol-documentation symbol . rest)
-  `(("signature" ,(format-signatures (signatures symbol)))))
+  `(("signature" ,(format-symbol-infos (symbol-infos symbol)))))
 
 
 ;;; Autodoc
@@ -138,37 +139,30 @@
   (map (cut formatted-autodoc <> (car rest))
        symbols))
 
-(define (formatted-autodoc symbol cur-module)
-  (format-autodoc-signature (autodoc-signature symbol cur-module)))
+(define (formatted-autodoc symbol pref-module)
+  (format-autodoc-symbol-info
+   (autodoc-symbol-info symbol pref-module)))
 
-(define (format-autodoc-signature as)
-  (if (symbol? as)
-      (list as)
-      (let ((sig (car as))
-	    (module (cdr as)))
-	(if (symbol? sig)
-	    `(,sig ("args" (("required" "...")))
-		   ("module" ,module))
-	    (signature->autodoc sig module)))))
-
-;; Return a (signature module) pair to be displayed in autodoc for SYMBOL.
-;; Return a (SYMBOL module) pair if SYMBOL is bound without signature and 
-;; SYMBOL if no binding was found.
-(define (autodoc-signature symbol cur-module)
-  (let1 sigs (signatures symbol)
-	(if (not (null? sigs))
-	    ;; Prefer the binding which visible from the current module
-	    (or (find (^x (eq? (global-variable-ref cur-module symbol #f)
+;; Return a (SIGNATURE-OR-SYMBOL MODULE) pair or SYMBOL itself to be used in the
+;; autodoc for SYMBOL. SIGNATURE-OR-SYMBOL is a signature of SYMBOL in MODULE if
+;; it can be found, and SYMBOL otherwise. Only SYMBOL and not a pair is returned
+;; if no suitable bindings were found. Prefer the binding which is visible from
+;; module PREF-MODULE, which should be a symbol.
+(define (autodoc-symbol-info symbol pref-module)
+  (let1 sis (symbol-infos symbol)
+	(if (not (null? sis))
+	    (or (find (^x (eq? (global-variable-ref pref-module symbol #f)
 			       (global-variable-ref (cdr x) symbol #f)))
-		      sigs)
-		(find (^x ($ not $ symbol? $ car x)) sigs)
-		(car sigs))
+		      sis)
+		(find (^x ($ not $ symbol? $ car x)) sis)
+		(car sis))
 	    symbol)))
 
-;; Format a signature for Geiser autodoc
-(define (signature->autodoc signature module-id)
-  
-  (define (process-normal-arg-info arg-info)
+
+;; Format an autodoc symbol-info in autodoc format.
+(define (format-autodoc-symbol-info asi)
+
+  (define (format-normal-arg-info arg-info)
     (let ((required '("required"))
 	  (optional '("optional"))
 	  (key '("key"))
@@ -188,19 +182,25 @@
 		      (else (push! required x))))))
       (map (cut reverse <>)
 	   (list required optional key))))
-  
+
   (define (process-dotted-arg-info arg-info)
     `(("required" ,@(dotted-list-head arg-info) "...")
       ("optional")
       ("key")))
-  
-  `(,(car signature)
-    ("args"
-     ,((if (list? signature)
-	   process-normal-arg-info
-	   process-dotted-arg-info)
-       (cdr signature)))
-    ("module" ,module-id)))
+
+  (if (symbol? asi)
+      (list asi)
+      (let ((sig (car asi)) (module (cdr asi)))
+	(if (symbol? sig)
+	    `(,sig ("args" (("required" "...")))
+		   ("module" ,module))
+	    `(,(car sig)
+	      ("args"
+	       ,((if (list? sig)
+		     format-normal-arg-info
+		     process-dotted-arg-info)
+		 (cdr sig)))
+	      ("module" ,module))))))
 
 
 ;; Further
