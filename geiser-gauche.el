@@ -87,6 +87,7 @@
   ;; 	     (format "(eval '(geiser:%s %s) (find-module 'geiser))" proc form))))
   (cl-case proc
     ;; Eval and compile are (module) context sensitive
+    ((no-values) "(eval '(geiser:no-values) (find-module 'geiser))")
     ((eval compile)
      (let ((module (cond ((string-equal "'()" (car args))
 			  "'()")
