@@ -209,17 +209,20 @@
   (let* ((module (find-module mod-name))
 	 (symbols (module-exports module))
 	 (syms-objs
-	  (map (^x (cons x (global-variable-ref module x)))
-	       symbols))
+	  (sort
+	   (map (^x (cons x (global-variable-ref module x)))
+		symbols)
+	   string>? (^x (symbol->string (car x)))))
 	 (procs ()) (macros ()) (vars ()))
     (dolist (sym-obj syms-objs)
 	    (let ((obj (cdr sym-obj))
 		  (sym (car sym-obj)))
-		  (cond
-		   ((is-a? obj <procedure>) (push! procs sym))
-		   ((or (is-a? obj <macro>)
-			(is-a? obj <syntax>)) (push! macros sym))
-		   (else (push! vars sym)))))
+	      (cond
+	       ((or (is-a? obj <generic>)
+		    (is-a? obj <procedure>)) (push! procs sym))
+	       ((or (is-a? obj <macro>)
+		    (is-a? obj <syntax>)) (push! macros sym))
+	       (else (push! vars sym)))))
     (list (cons "procs" (map list procs))
 	  (cons "syntax" (map list macros))
 	  (cons "vars" (map list vars)))))
@@ -238,5 +241,4 @@
 ;; TODO We add the load-path at the end. Is this correct?
 (define-macro (geiser:add-to-load-path dir)
   `(add-load-path ,dir :after))
-
 
