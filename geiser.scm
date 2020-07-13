@@ -219,13 +219,18 @@
 		  (sym (car sym-obj)))
 	      (cond
 	       ((or (is-a? obj <generic>)
-		    (is-a? obj <procedure>)) (push! procs sym))
+		    (is-a? obj <procedure>))
+		(push! procs
+		       (list sym (cons "signature"
+				       (remove (^x (and (pair? x)
+							(string? (car x))
+							(string= "module" (car x))))
+					(formatted-autodoc sym #f))))))
 	       ((or (is-a? obj <macro>)
-		    (is-a? obj <syntax>)) (push! macros sym))
-	       (else (push! vars sym)))))
-    (list (cons "procs" (map list procs))
-	  (cons "syntax" (map list macros))
-	  (cons "vars" (map list vars)))))
+		    (is-a? obj <syntax>))
+		(push! macros (list sym)))
+	       (else (push! vars (list sym))))))
+    `(list ("modules") ("procs" . ,procs) ("syntax" . ,macros) ("vars" . ,vars))))
 
 
 ;; Further
