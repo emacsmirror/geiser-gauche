@@ -185,7 +185,9 @@
 	   (list required optional key))))
 
   (define (process-dotted-arg-info arg-info)
-    `(("required" ,@(dotted-list-head arg-info) "...")
+    `(,(if (symbol? arg-info)
+	   '("required" "...")
+	   `("required" ,@(dotted-list-head arg-info) "..."))
       ("optional")
       ("key")))
 
