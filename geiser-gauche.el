@@ -51,7 +51,7 @@
   :group 'geiser-gauche)
 
 (geiser-custom--defcustom geiser-gauche-manual-lookup-nodes
-    '("Gauche")
+    '("gauche-refe")
   "List of info nodes that, when present, are used for manual lookups"
   :type '(repeat string)
   :group 'geiser-gauche)
@@ -237,8 +237,7 @@
         (mapc (lambda (idx)
                 (add-to-list 'res
                              (list (format "(%s)%s" node idx) nil nrx drx)))
-              '("Function and Syntax Index" "Module Index" "Class Index"
-		"Variable Index"))))))
+              '("Module Index" "Class Index" "Variable Index"))))))
 
 
 (info-lookup-add-help :topic 'symbol :mode 'geiser-gauche-mode
