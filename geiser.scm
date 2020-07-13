@@ -225,7 +225,7 @@
 				       (remove (^x (and (pair? x)
 							(string? (car x))
 							(string= "module" (car x))))
-					(formatted-autodoc sym #f))))))
+					(formatted-autodoc sym mod-name))))))
 	       ((or (is-a? obj <macro>)
 		    (is-a? obj <syntax>))
 		(push! macros (list sym)))
