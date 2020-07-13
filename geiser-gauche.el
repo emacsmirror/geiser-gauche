@@ -117,6 +117,7 @@
                    (re-search-forward geiser-gauche--module-re nil t))
                (geiser-gauche--get-module (match-string-no-properties 1))
              :f)))
+	((symbolp module) module)
         ((listp module) module)
         ((stringp module)
          (condition-case nil

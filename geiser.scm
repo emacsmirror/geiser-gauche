@@ -14,6 +14,7 @@
    geiser:add-to-load-path
    geiser:symbol-documentation
    geiser:module-location
+   geiser:module-exports
    ;; Missing functions:
    ;; geiser:start-server
    ;; geiser:object-signature
@@ -201,6 +202,13 @@
 		     process-dotted-arg-info)
 		 (cdr sig)))
 	      ("module" ,module))))))
+
+;; Module documentation
+
+(define (geiser:module-exports mod-name . rest)
+  (let1 symbols (module-exports (find-module mod-name))
+	(list (cons "procs"
+		    (map list symbols)))))
 
 
 ;; Further
