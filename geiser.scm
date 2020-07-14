@@ -13,6 +13,7 @@
    geiser:module-completions
    geiser:add-to-load-path
    geiser:symbol-documentation
+   geiser:symbol-location
    geiser:module-location
    geiser:module-exports
    ;; Missing functions:
@@ -136,8 +137,8 @@
 
 ;;; Autodoc
 
-(define (geiser:autodoc symbols . rest)
-  (map (cut formatted-autodoc <> (car rest))
+(define (geiser:autodoc symbols pref-module)
+  (map (cut formatted-autodoc <> pref-module)
        symbols))
 
 (define (formatted-autodoc symbol pref-module)
@@ -244,7 +245,21 @@
 
 ;; Further
 
+(define (geiser:symbol-location symbol pref-module)
+  (if (find-module symbol)
+      (geiser:module-location symbol)
+      (let* ((module (or pref-module 'user))
+	     (obj (global-variable-ref module symbol #f)))
+	(if (and obj (or (is-a? obj <procedure>)
+			 (is-a? obj <generic>)))
+	    (let* ((sl (source-location obj))
+		   (file (car sl))
+		   (line (cadr sl)))
+	      `(("file" . ,file) ("line" . ,line) ("column")))
+	    ()))))
+
 ;; TODO We add the load-path at the end. Is this correct?
 (define-macro (geiser:add-to-load-path dir)
   `(add-load-path ,dir :after))
+
 
