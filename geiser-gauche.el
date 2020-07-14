@@ -86,7 +86,7 @@
   (cl-case proc
     ;; Autodoc (alone) makes use of the {{cur-module}} cookie to pass current
     ;; module information
-    ((autodoc) (format "(geiser:autodoc %s {{cur-module}})"
+    ((autodoc) (format "(eval '(geiser:autodoc %s {{cur-module}}) (find-module 'geiser))"
 		       (mapconcat 'identity args " ")))
     ;; Eval and compile are (module) context sensitive
     ((eval compile)
