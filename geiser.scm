@@ -19,7 +19,6 @@
    ;; Missing functions:
    ;; geiser:start-server
    ;; geiser:object-signature
-   ;; geiser:symbol-location
    ;; geiser:find-file
    ;; geiser:compile
    ))
@@ -240,23 +239,24 @@
        (let1 paths (map cdr (library-fold m acons '()))
 	     (if (pair? paths)
 		 `(("file" . ,(car paths)) ("line") ("column"))
-		 ()))))
+		 '(("file") ("line") ("column"))))))
 
 
 ;; Further
 
 (define (geiser:symbol-location symbol pref-module)
-  (if (find-module symbol)
-      (geiser:module-location symbol)
-      (let* ((module (or pref-module 'user))
-	     (obj (global-variable-ref module symbol #f)))
-	(if (and obj (or (is-a? obj <procedure>)
-			 (is-a? obj <generic>)))
-	    (let* ((sl (source-location obj))
+  (let* ((module (or pref-module 'user))
+	 (obj (global-variable-ref module symbol #f)))
+    (or (and-let* (obj
+		   ((or (is-a? obj <procedure>)
+			(is-a? obj <generic>)))
+		   (sl (source-location obj))
 		   (file (car sl))
+		   ((string-contains file "/"))
+		   ((not (string-contains file "./")))
 		   (line (cadr sl)))
-	      `(("file" . ,file) ("line" . ,line) ("column")))
-	    ()))))
+	  `(("file" . ,file) ("line" . ,line) ("column")))
+	'(("file") ("line") ("column")))))
 
 ;; TODO We add the load-path at the end. Is this correct?
 (define-macro (geiser:add-to-load-path dir)

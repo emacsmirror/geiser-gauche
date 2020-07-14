@@ -228,7 +228,7 @@
 
 
 ;;; Manual look up
-;;; code taken from the Guile implementation 
+;;; code adapted from the Guile implementation
 
 (defun geiser-gauche--info-spec (&optional nodes)
   (let* ((nrx "^[       ]+-+ [^:]+:[    ]*")
@@ -241,7 +241,6 @@
                 (add-to-list 'res
                              (list (format "(%s)%s" node idx) nil nrx drx)))
               '("Module Index" "Class Index" "Variable Index"))))))
-
 
 (info-lookup-add-help :topic 'symbol :mode 'geiser-gauche-mode
                       :ignore-case nil
