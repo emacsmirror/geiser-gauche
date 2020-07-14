@@ -84,8 +84,8 @@
   ;;   (goto-char (point-max))
   ;;   (insert (format "\nGeiser PROC: %s, ARGS: %s \n" proc args)))
   (cl-case proc
-    ;; Autodoc makes use of the {{cur-module}} cookie to handle module
-    ;; dependence
+    ;; Autodoc (alone) makes use of the {{cur-module}} cookie to pass current
+    ;; module information
     ((autodoc) (format "(geiser:autodoc %s {{cur-module}})"
 		       (mapconcat 'identity args " ")))
     ;; Eval and compile are (module) context sensitive
