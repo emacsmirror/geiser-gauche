@@ -82,13 +82,12 @@
 (defun geiser-gauche--geiser-procedure (proc &rest args)
   ;; (with-current-buffer "*scratch*"
   ;;   (goto-char (point-max))
-  ;;   (insert (format "\nGeiser PROC: %s, ARGS: %s \ntranslated to:\n" proc args))
-  ;;   (insert (let ((form (mapconcat 'identity args " ")))
-  ;; 	     (format "(eval '(geiser:%s %s) (find-module 'geiser))" proc form))))
+  ;;   (insert (format "\nGeiser PROC: %s, ARGS: %s \n" proc args)))
   (cl-case proc
-    ((no-values) "(eval '(geiser:no-values) (find-module 'geiser))")
-    ((load-file compile-file)
-     (format "(eval '(geiser:load-file %s) (find-module 'geiser))" (car args)))
+    ;; Autodoc makes use of the {{cur-module}} cookie to handle module
+    ;; dependence
+    ((autodoc) (format "(geiser:autodoc %s {{cur-module}})"
+		       (mapconcat 'identity args " ")))
     ;; Eval and compile are (module) context sensitive
     ((eval compile)
      (let ((module (cond ((string-equal "'()" (car args))
@@ -98,15 +97,15 @@
 			 (t
 			  "#f")))
 	   (form (mapconcat 'identity (cdr args) " ")))
-       ;; {{cur-module}} is replaced by the current module for the commands
+       ;; The {{cur-module}} cookie is replaced by the current module for
+       ;; commands that need it
        (replace-regexp-in-string
 	"{{cur-module}}" module
 	(format "(eval '(geiser:eval %s '%s) (find-module 'geiser))" module form))))
     ;; The rest of the commands are all evaluated in the geiser module 
     (t
      (let ((form (mapconcat 'identity args " ")))
-       ;; {{cur-module}} will be replaced by the current module when eval is called
-       (format "(eval '(geiser:%s %s {{cur-module}}) (find-module 'geiser))" proc form)))))
+       (format "(eval '(geiser:%s %s) (find-module 'geiser))" proc form)))))
 
 (defconst geiser-gauche--module-re
   "(define-module +\\([[:alnum:].]+\\)")
