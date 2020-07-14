@@ -205,11 +205,15 @@
     "with-string-io"
     "with-time-counter"))
 
-
 (defun geiser-gauche--keywords ()
   (append
    (geiser-syntax--simple-keywords geiser-gauche-extra-keywords)
    (geiser-syntax--simple-keywords geiser-gauche-builtin-keywords)))
+
+(geiser-syntax--scheme-indent
+ (case-lambda: 0)
+ (let1 1))
+
 
 ;;; REPL startup
 
