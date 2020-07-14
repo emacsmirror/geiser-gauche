@@ -149,11 +149,6 @@
 (defconst geiser-gauche--binding-forms*
   '("and-let*" "let*-values" ))
 
-(defun geiser-gauche--keywords ()
-  (append
-   (geiser-syntax--simple-keywords geiser-gauche-extra-keywords)
-   (geiser-syntax--simple-keywords geiser-gauche-builtin-keywords)))
-
 (defconst geiser-gauche-builtin-keywords
   '("and-let"
     "and-let1"
@@ -209,6 +204,11 @@
     "with-string-io"
     "with-time-counter"))
 
+
+(defun geiser-gauche--keywords ()
+  (append
+   (geiser-syntax--simple-keywords geiser-gauche-extra-keywords)
+   (geiser-syntax--simple-keywords geiser-gauche-builtin-keywords)))
 
 ;;; REPL startup
 
