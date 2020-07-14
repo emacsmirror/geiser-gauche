@@ -86,10 +86,10 @@
   ;;   (insert (let ((form (mapconcat 'identity args " ")))
   ;; 	     (format "(eval '(geiser:%s %s) (find-module 'geiser))" proc form))))
   (cl-case proc
-    ;; Eval and compile are (module) context sensitive
     ((no-values) "(eval '(geiser:no-values) (find-module 'geiser))")
     ((load-file compile-file)
      (format "(eval '(geiser:load-file %s) (find-module 'geiser))" (car args)))
+    ;; Eval and compile are (module) context sensitive
     ((eval compile)
      (let ((module (cond ((string-equal "'()" (car args))
 			  "'()")
