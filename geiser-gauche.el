@@ -88,6 +88,7 @@
   (cl-case proc
     ;; Eval and compile are (module) context sensitive
     ((no-values) "(eval '(geiser:no-values) (find-module 'geiser))")
+    ((load-file) (format "(eval '(geiser:load-file %s) (find-module 'geiser))" (car args)))
     ((eval compile)
      (let ((module (cond ((string-equal "'()" (car args))
 			  "'()")

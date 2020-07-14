@@ -205,7 +205,7 @@
 		 (cdr sig)))
 	      ("module" ,module))))))
 
-;; Module documentation
+;; Module information
 
 (define (geiser:module-exports mod-name . rest)
   (let* ((module (find-module mod-name))
@@ -234,9 +234,6 @@
 	       (else (push! vars (list sym))))))
     `(list ("modules") ("procs" . ,procs) ("syntax" . ,macros) ("vars" . ,vars))))
 
-
-;; Further
-
 (define (geiser:module-location m . rest)
   (and (find-module m)
        (let1 paths (map cdr (library-fold m acons '()))
@@ -244,6 +241,8 @@
 		 `(("file" . ,(car paths)) ("line") ("column"))
 		 ()))))
 
+
+;; Further
 
 ;; TODO We add the load-path at the end. Is this correct?
 (define-macro (geiser:add-to-load-path dir)
