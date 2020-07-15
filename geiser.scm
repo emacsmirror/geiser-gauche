@@ -25,28 +25,29 @@
 
 (select-module geiser)
 
-;; Utility functions
+
+;;;; Utility functions
 
-;; Return the list of elements before the dot in a "dotted list" of the form
-;; (x_1 x_2 ... x_n . y)
+;;; Return the list of elements before the dot in a "dotted list" of the form
+;;; (x_1 x_2 ... x_n . y).
 (define (dotted-list-head dl)
   (if (pair? (cdr dl))
       (cons (car dl) (dotted-list-head (cdr dl)))
       (list (car dl))))
 
-;; Return the first leaf of a tree   
+;;; Return the first leaf of a tree.
 (define (get-first-leaf tree)
   (if (pair? tree)
       (get-first-leaf (car tree))
       tree))
 
-;; Add a colon at the beginning to a symbol
+;;; Add a colon at the beginning to a symbol.
 (define (coloned-sym sym)
   (if (string-prefix? ":" (symbol->string sym))
       sym
       (symbol-append ': sym)))
 
-;; Return the id of a module as symbol
+;;; Return the id of a module as symbol.
 (define (module-id module)
   (let ((module-repr (write-to-string module)))
     (string->symbol
@@ -82,7 +83,7 @@
 (define (geiser:no-values . rest)
   (values))
 
-;;; Completions
+;;;; Completions
 
 (define (geiser:completions prefix . rest)
   (delete-duplicates
@@ -100,10 +101,10 @@
    (map (^x (symbol->string (module-name x)))
 	(all-modules))))
 
-;; Symbol documentation 
+;;;; Symbol documentation 
 
-;; Return the signature of SYMBOL in MODULE if there is one, SYMBOL if the
-;; symbol is bound without one, #f otherwise.
+;;; Return the signature of SYMBOL in MODULE if there is one, SYMBOL if the
+;;; symbol is bound without one, #f otherwise.
 (define (signature-in-module symbol module)
   (if (hash-table-get (module-table module) symbol #f)
       (let1 obj (global-variable-ref module symbol)
@@ -112,9 +113,9 @@
 		symbol))
       #f))
 
-;; Return a list of symbol-infos, i.e., (SIGNATURE-OR-SYMBOL MODULE) pairs for
-;; all bindings of SYMBOL. SIGNATURE-OR-SYMBOL is the signature of SYMBOL in
-;; MODULE if it can be found, and SYMBOL otherwise.
+;;; Return a list of symbol-infos, i.e., (SIGNATURE-OR-SYMBOL MODULE) pairs for
+;;; all bindings of SYMBOL. SIGNATURE-OR-SYMBOL is the signature of SYMBOL in
+;;; MODULE if it can be found, and SYMBOL otherwise.
 (define (symbol-infos symbol)
   (let ((signatures-w-modules
 	 (map (^x (cons (signature-in-module symbol x)
@@ -123,7 +124,7 @@
     (remove (^x (not (car x)))
 	    signatures-w-modules)))
 
-;; Format a symbol-info list for presenting with symbol documentation
+;;; Format a symbol-info list for presenting with symbol documentation
 (define (format-symbol-infos symbol-infos)
   (map (^x `(,(cdr x) ,(if (pair? (car x))
 			   (car x)
@@ -134,7 +135,7 @@
   `(("signature" ,(format-symbol-infos (symbol-infos symbol)))))
 
 
-;;; Autodoc
+;;;; Autodoc
 
 (define (geiser:autodoc symbols pref-module)
   (map (cut formatted-autodoc <> pref-module)
@@ -144,11 +145,11 @@
   (format-autodoc-symbol-info
    (autodoc-symbol-info symbol pref-module)))
 
-;; Return a (SIGNATURE-OR-SYMBOL MODULE) pair or SYMBOL itself to be used in the
-;; autodoc for SYMBOL. SIGNATURE-OR-SYMBOL is a signature of SYMBOL in MODULE if
-;; it can be found, and SYMBOL otherwise. Only SYMBOL and not a pair is returned
-;; if no suitable bindings were found. Prefer the binding which is visible from
-;; module PREF-MODULE, which should be a symbol.
+;;; Return a (SIGNATURE-OR-SYMBOL MODULE) pair or SYMBOL itself to be used in the
+;;; autodoc for SYMBOL. SIGNATURE-OR-SYMBOL is a signature of SYMBOL in MODULE if
+;;; it can be found, and SYMBOL otherwise. Only SYMBOL and not a pair is returned
+;;; if no suitable bindings were found. Prefer the binding which is visible from
+;;; module PREF-MODULE, which should be a symbol.
 (define (autodoc-symbol-info symbol pref-module)
   (let1 sis (symbol-infos symbol)
 	(if (not (null? sis))
@@ -160,7 +161,7 @@
 	    symbol)))
 
 
-;; Format an autodoc symbol-info in autodoc format.
+;;; Format an autodoc symbol-info in autodoc format.
 (define (format-autodoc-symbol-info asi)
 
   (define (format-normal-arg-info arg-info)
@@ -205,7 +206,7 @@
 		 (cdr sig)))
 	      ("module" ,module))))))
 
-;; Module information
+;;;; Module information
 
 (define (geiser:module-exports mod-name . rest)
   (let* ((module (find-module mod-name))
@@ -242,7 +243,7 @@
 		 '(("file") ("line") ("column"))))))
 
 
-;; Further
+;;;; Further
 
 (define (geiser:symbol-location symbol pref-module)
   (let* ((module (or pref-module 'user))
@@ -258,7 +259,7 @@
 	  `(("file" . ,file) ("line" . ,line) ("column")))
 	'(("file") ("line") ("column")))))
 
-;; TODO We add the load-path at the end. Is this correct?
+;;; TODO We add the load-path at the end. Is this correct?
 (define-macro (geiser:add-to-load-path dir)
   `(add-load-path ,dir :after))
 
