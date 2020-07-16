@@ -286,6 +286,7 @@
 ;;; Implementation definition:
 
 (define-geiser-implementation gauche
+  (unsupported-procedures '(callers callees generic-methods))
   (binary geiser-gauche--binary)
   (arglist geiser-gauche--parameters)
   (version-command geiser-gauche--version)
