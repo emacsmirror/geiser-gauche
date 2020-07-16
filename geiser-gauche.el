@@ -227,8 +227,19 @@
     (compilation-setup t)
     (geiser-eval--send/wait "(newline)")))
 
+
+;;; Error display
+
 (defun geiser-gauche--display-error (module key msg)
-  (and key (message msg) nil))
+  (when key
+    (insert key)
+    (save-excursion
+      (goto-char (point-min))
+      (re-search-forward "report-error err #f")
+      (kill-whole-line 2)))
+  (when msg
+    (insert msg))
+  (if (and msg (string-match "\\(.+\\)$" msg)) (match-string 1 msg) key))
 
 
 ;;; Manual look up

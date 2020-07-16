@@ -59,17 +59,19 @@
     (cut pprint (macroexpand form))))
 
 (define (geiser:eval module-name form . rest)
-  ;; (call-with-output-file "/tmp/gauche.log" 
-  ;;   (^o (format o "FORM: ~s, REST: ~s" form rest)))
-  (let* ((output (open-output-string))
-         (module (or (and (symbol? module-name )
-			  (find-module module-name))
-		     (find-module 'user)))
-         (result (with-output-to-port output
-                   (lambda ()
-                     (eval form module)))))
-    (write `((result ,(write-to-string result))
-             (output . ,(get-output-string output))))))
+  rest
+  (guard (err
+	  (else
+	   (write
+	    `((error (key . ,(report-error err #f)))))))
+    (let* ((output (open-output-string))
+	   (module (or (and (symbol? module-name )
+			    (find-module module-name))
+		       (find-module 'user)))
+	   (result (with-output-to-port output
+		     (^ () (eval form module)))))
+      (write `((result ,(write-to-string result))
+	       (output . ,(get-output-string output)))))))
 
 (define (geiser:load-file filename . rest)
   (geiser:eval 'user `(load ,filename)))
@@ -137,7 +139,7 @@
 
 ;;;; Autodoc
 
-(define (geiser:autodoc symbols pref-module)
+(define (geiser:autodoc symbols pref-module . rest)
   (map (cut formatted-autodoc <> pref-module)
        symbols))
 
@@ -262,5 +264,3 @@
 ;;; TODO We add the load-path at the end. Is this correct?
 (define-macro (geiser:add-to-load-path dir)
   `(add-load-path ,dir :after))
-
-
