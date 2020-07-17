@@ -283,7 +283,6 @@
 
 
 ;;; Guess whether buffer is Gauche
-;;; adapted from geiser-chicken
 
 (defconst geiser-gauche--guess-re
   (regexp-opt '("gauche" "gosh")))
