@@ -109,7 +109,7 @@
        (format "(eval '(geiser:%s %s) (find-module 'geiser))" proc form)))))
 
 (defconst geiser-gauche--module-re
-  "(define-module +\\([[:alnum:].]+\\)")
+  "(define-module +\\([[:alnum:].-]+\\)")
 
 (defun geiser-gauche--get-module (&optional module)
   (cond ((null module)
