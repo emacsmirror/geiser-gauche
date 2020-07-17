@@ -102,8 +102,9 @@
        ;; commands that need it
        (replace-regexp-in-string
 	"{{cur-module}}"
-	;; module 
-	(format "'%s" (geiser-gauche--get-module))
+	(if (string= module "'#f")
+	    (format "'%s" (geiser-gauche--get-module))
+	  module)
 	(format "(eval '(geiser:eval %s '%s) (find-module 'geiser))" module form))))
     ;; The rest of the commands are all evaluated in the geiser module 
     (t
