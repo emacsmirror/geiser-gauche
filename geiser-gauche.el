@@ -84,8 +84,8 @@
   ;;   (goto-char (point-max))
   ;;   (insert (format "\nGeiser PROC: %s, ARGS: %s \n" proc args)))
   (cl-case proc
-    ;; Autodoc (alone) makes use of the {{cur-module}} cookie to pass current
-    ;; module information
+    ;; Autodoc and symbol-location makes use of the {{cur-module}} cookie to
+    ;; pass current module information
     ((autodoc symbol-location)
      (format "(eval '(geiser:%s %s {{cur-module}}) (find-module 'geiser))"
 	     proc (mapconcat 'identity args " ")))
@@ -101,7 +101,9 @@
        ;; The {{cur-module}} cookie is replaced by the current module for
        ;; commands that need it
        (replace-regexp-in-string
-	"{{cur-module}}" module
+	"{{cur-module}}"
+	;; module 
+	(format "'%s" (geiser-gauche--get-module))
 	(format "(eval '(geiser:eval %s '%s) (find-module 'geiser))" module form))))
     ;; The rest of the commands are all evaluated in the geiser module 
     (t
@@ -111,6 +113,12 @@
 (defconst geiser-gauche--module-re
   "(define-module +\\([[:alnum:].-]+\\)")
 
+(defun geiser-gauche--get-current-repl-module ()
+  (substring 
+   (geiser-eval--send/result
+    '(list (list (quote result) (write-to-string (current-module)))))
+   9 -1))
+
 (defun geiser-gauche--get-module (&optional module)
   (cond ((null module)
          (save-excursion
@@ -119,7 +127,9 @@
                    (looking-at geiser-gauche--module-re)
                    (re-search-forward geiser-gauche--module-re nil t))
                (geiser-gauche--get-module (match-string-no-properties 1))
-             :f)))
+	     ;; Return the repl module as fallback
+             (geiser-gauche--get-module
+	      (geiser-gauche--get-current-repl-module)))))
 	((symbolp module) module)
         ((listp module) module)
         ((stringp module)
