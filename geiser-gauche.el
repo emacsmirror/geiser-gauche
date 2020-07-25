@@ -22,14 +22,15 @@
 
 ;;; Code:
 
+(require 'info-look)
+(require 'cl-lib)
+(require 'compile)
+
 (require 'geiser-syntax)
 (require 'geiser-custom)
 (require 'geiser-eval)
 (require 'geiser-log)
 (require 'geiser)
-
-(require 'info-look)
-(require 'cl-lib)
 
 
 ;;; Customization
