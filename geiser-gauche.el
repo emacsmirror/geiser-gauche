@@ -1,37 +1,46 @@
-;;; geiser-gauche.el -- Gauche Scheme's implementation of the geiser protocols
+;;; geiser-gauche.el --- Gauche scheme support for Geiser -*- lexical-binding:t -*-
+
+;; Copyright (C) 2020 András Simonyi
+
+;; Author: András Simonyi <andras.simonyi@gmail.com>
+;; Maintainer: András Simonyi <andras.simonyi@gmail.com>
+;; URL: https://gitlab.com/emacs-geiser/gauche
+;; Keywords: languages, gauche, scheme, geiser
+;; Package-Requires: ((emacs "26.1") (geiser "0.11.2"))
+;; Version: 0.0.1
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the Modified BSD License. You should
 ;; have received a copy of the license along with this program. If
-;; not, see <http://www.xfree86.org/3.3.6/COPYRIGHT2.html#5>.
+;; not, see <https://www.xfree86.org/3.3.6/COPYRIGHT2.html#5>.
 
-
+;; This file is not part of GNU Emacs.
+
+;;; Commentary:
+
+;; geiser-gauche adds Gauche scheme support to the `geiser' package
+
 ;;; Code:
 
-(require 'geiser-connection)
 (require 'geiser-syntax)
 (require 'geiser-custom)
-(require 'geiser-base)
 (require 'geiser-eval)
-(require 'geiser-edit)
 (require 'geiser-log)
 (require 'geiser)
 
-(require 'compile)
 (require 'info-look)
-
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 
 
-;;; Customization:
+;;; Customization
 
 (defgroup geiser-gauche nil
-  "Customization for Geiser's Gauche Scheme flavour."
+  "Customization for Geiser's Gauche flavour."
   :group 'geiser)
 
 (geiser-custom--defcustom geiser-gauche-binary
     "gosh"
-  "Name to use to call the Gauche Scheme executable when starting a REPL."
+  "Name to use to call the Gauche executable when starting a REPL."
   :type '(choice string (repeat string))
   :group 'geiser-gauche)
 
@@ -60,6 +69,7 @@
   "Non-nil means pop up the Info buffer in another window."
   :type 'boolean
   :group 'geiser-gauche)
+
 
 ;;; REPL support:
 
@@ -74,15 +84,13 @@
     "-l" ,(expand-file-name "gauche/geiser.scm" geiser-scheme-dir)
     ,@(and (listp geiser-gauche-binary) (cdr geiser-gauche-binary))))
 
-(defconst geiser-gauche--prompt-regexp "gosh\\(\\[[^(]+\\]\\)?> ") 
+(defconst geiser-gauche--prompt-regexp "gosh\\(\\[[^(]+\\]\\)?> ")
 
 
 ;;; Evaluation support:
 
 (defun geiser-gauche--geiser-procedure (proc &rest args)
-  ;; (with-current-buffer "*scratch*"
-  ;;   (goto-char (point-max))
-  ;;   (insert (format "\nGeiser PROC: %s, ARGS: %s \n" proc args)))
+  "String to send to the repl to execute geiser PROC with ARGS."
   (cl-case proc
     ;; Autodoc and symbol-location makes use of the {{cur-module}} cookie to
     ;; pass current module information
@@ -106,21 +114,26 @@
 	    (format "'%s" (geiser-gauche--get-module))
 	  module)
 	(format "(eval '(geiser:eval %s '%s) (find-module 'geiser))" module form))))
-    ;; The rest of the commands are all evaluated in the geiser module 
+    ;; The rest of the commands are all evaluated in the geiser module
     (t
      (let ((form (mapconcat 'identity args " ")))
        (format "(eval '(geiser:%s %s) (find-module 'geiser))" proc form)))))
 
 (defconst geiser-gauche--module-re
-  "(define-module +\\([[:alnum:].-]+\\)")
+  "(define-module +\\([[:alnum:].-]+\\)"
+  "Regex for locating the module defined in a scheme source.")
 
 (defun geiser-gauche--get-current-repl-module ()
-  (substring 
+  "Return the current repl module's name as a string."
+  (substring
    (geiser-eval--send/result
     '(list (list (quote result) (write-to-string (current-module)))))
    9 -1))
 
 (defun geiser-gauche--get-module (&optional module)
+  "Return the current module as a symbol.
+If optional MODULE is non-nil then return its normalized symbol
+form."
   (cond ((null module)
          (save-excursion
            (geiser-syntax--pop-to-top)
@@ -140,18 +153,24 @@
         (t :f)))
 
 (defun geiser-gauche--enter-command (module)
+  "Return a scheme expression to enter MODULE."
   (format "(select-module %s)" module))
 
 (defun geiser-gauche--import-command (module)
+  "Return a scheme expression to import MODULE."
   (format "(import %s)" module))
 
+;; Code taken from the Guile implementation.
 (defun geiser-gauche--symbol-begin (module)
+  "Return the beginning position of the symbol at point."
   (if module
       (max (save-excursion (beginning-of-line) (point))
            (save-excursion (skip-syntax-backward "^(>") (1- (point))))
     (save-excursion (skip-syntax-backward "^'-()>") (point))))
 
-(defun geiser-gauche--exit-command () "(exit)")
+(defconst geiser-gauche--exit-command
+  "(exit)"
+  "Scheme expression to exit the repl.")
 
 (defconst geiser-gauche--binding-forms
   '("and-let" "and-let1" "let1" "if-let1" "rlet1" "receive" "fluid-let" "let-values"
@@ -231,9 +250,9 @@
 (defconst geiser-gauche-minimum-version "0.9.9")
 
 (defun geiser-gauche--version (binary)
-  (cadr (read (cadr (process-lines "gosh" "-V")))))
+  (cadr (read (cadr (process-lines binary "-V")))))
 
-(defun geiser-gauche--startup (remote)
+(defun geiser-gauche--startup (_remote)
   (let ((geiser-log-verbose-p t))
     (compilation-setup t)
     (geiser-eval--send/wait "(newline)")))
@@ -241,7 +260,7 @@
 
 ;;; Error display
 
-(defun geiser-gauche--display-error (module key msg)
+(defun geiser-gauche--display-error (_module key msg)
   (when key
     (insert key)
     (save-excursion
@@ -253,8 +272,7 @@
   (if (and msg (string-match "\\(.+\\)$" msg)) (match-string 1 msg) key))
 
 
-;;; Manual look up
-;;; code adapted from the Guile implementation
+;;; Manual look up -- code adapted from the Guile implementation
 
 (defun geiser-gauche--info-spec (&optional nodes)
   (let* ((nrx "^[       ]+-+ [^:]+:[    ]*")
@@ -273,7 +291,7 @@
                       :regexp "[^()`',\"        \n]+"
                       :doc-spec (geiser-gauche--info-spec))
 
-(defun geiser-gauche--manual-look-up (id mod)
+(defun geiser-gauche--manual-look-up (id _mod)
   (let ((info-lookup-other-window-flag
          geiser-gauche-manual-lookup-other-window-p))
     (info-lookup-symbol (symbol-name id) 'geiser-gauche-mode))
@@ -304,8 +322,6 @@
   (repl-startup geiser-gauche--startup)
   (prompt-regexp geiser-gauche--prompt-regexp)
   (debugger-prompt-regexp nil)
-  ;; geiser-gauche--debugger-prompt-regexp
-  ;; (enter-debugger geiser-gauche--enter-debugger)
   (marshall-procedure geiser-gauche--geiser-procedure)
   (find-module geiser-gauche--get-module)
   (enter-command geiser-gauche--enter-command)
@@ -323,5 +339,7 @@
 (geiser-impl--add-to-alist 'regexp "\\.scm$" 'gauche t)
 
 (add-to-list 'geiser-active-implementations 'gauche)
-
+
 (provide 'geiser-gauche)
+
+;;; geiser-gauche.el ends here
