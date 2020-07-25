@@ -72,6 +72,12 @@
   :group 'geiser-gauche)
 
 
+;;; Utils
+
+(defconst geiser-gauche--load-dir (f-dirname load-file-name)
+  "The dir from geicher-gauche  was loaded.")
+
+
 ;;; REPL support:
 
 (defun geiser-gauche--binary ()
@@ -82,7 +88,7 @@
 (defun geiser-gauche--parameters ()
   "Return a list with all parameters needed to start Gauche Scheme."
   `(,@geiser-gauche-extra-command-line-parameters
-    "-l" ,(expand-file-name "gauche/geiser.scm" geiser-scheme-dir)
+    "-l" ,(expand-file-name "geiser-gauche.scm" geiser-gauche--load-dir)
     ,@(and (listp geiser-gauche-binary) (cdr geiser-gauche-binary))))
 
 (defconst geiser-gauche--prompt-regexp "gosh\\(\\[[^(]+\\]\\)?> ")
@@ -154,11 +160,11 @@ form."
         (t :f)))
 
 (defun geiser-gauche--enter-command (module)
-  "Return a scheme expression to enter MODULE."
+  "Return a scheme expression string to enter MODULE."
   (format "(select-module %s)" module))
 
 (defun geiser-gauche--import-command (module)
-  "Return a scheme expression to import MODULE."
+  "Return a scheme expression string to import MODULE."
   (format "(import %s)" module))
 
 ;; Code taken from the Guile implementation.
