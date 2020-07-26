@@ -81,6 +81,7 @@
 ;;; REPL support:
 
 (defun geiser-gauche--binary ()
+  "Return the runnable Gauche binary name without path."
   (if (listp geiser-gauche-binary)
       (car geiser-gauche-binary)
     geiser-gauche-binary))
@@ -167,17 +168,13 @@ form."
   "Return a scheme expression string to import MODULE."
   (format "(import %s)" module))
 
-;; Code taken from the Guile implementation.
-(defun geiser-gauche--symbol-begin (module)
+(defun geiser-gauche--symbol-begin (_module)
   "Return the beginning position of the symbol at point."
-  (if module
-      (max (save-excursion (beginning-of-line) (point))
-           (save-excursion (skip-syntax-backward "^(>") (1- (point))))
-    (save-excursion (skip-syntax-backward "^'-()>") (point))))
+  (max (save-excursion (beginning-of-line) (point))
+       (save-excursion (skip-syntax-backward "^(>") (1- (point)))))
 
 (defconst geiser-gauche--exit-command
-  "(exit)"
-  "Scheme expression to exit the repl.")
+  "(exit)")
 
 (defconst geiser-gauche--binding-forms
   '("and-let" "and-let1" "let1" "if-let1" "rlet1" "receive" "fluid-let" "let-values"
@@ -187,7 +184,7 @@ form."
 (defconst geiser-gauche--binding-forms*
   '("and-let*" "let*-values" ))
 
-(defconst geiser-gauche-builtin-keywords
+(defconst geiser-gauche--builtin-keywords
   '("and-let"
     "and-let1"
     "assume"
@@ -243,6 +240,7 @@ form."
     "with-time-counter"))
 
 (defun geiser-gauche--keywords ()
+  "Add geiser-specific keywords to the default ones."
   (append
    (geiser-syntax--simple-keywords geiser-gauche-extra-keywords)
    (geiser-syntax--simple-keywords geiser-gauche-builtin-keywords)))
@@ -254,12 +252,14 @@ form."
 
 ;;; REPL startup
 
-(defconst geiser-gauche-minimum-version "0.9.9")
+(defconst geiser-gauche--minimum-version "0.9.7")
 
 (defun geiser-gauche--version (binary)
+  "Return the version of a Gauche BINARY."
   (cadr (read (cadr (process-lines binary "-V")))))
 
 (defun geiser-gauche--startup (_remote)
+  "Initialize a Gauche repl."
   (let ((geiser-log-verbose-p t))
     (compilation-setup t)
     (geiser-eval--send/wait "(newline)")))
@@ -268,6 +268,7 @@ form."
 ;;; Error display
 
 (defun geiser-gauche--display-error (_module key msg)
+  "Display evaluation error information KEY and MSG."
   (when key
     (insert key)
     (save-excursion
@@ -282,6 +283,7 @@ form."
 ;;; Manual look up -- code adapted from the Guile implementation
 
 (defun geiser-gauche--info-spec (&optional nodes)
+  "Return an info docspec list for NODES."
   (let* ((nrx "^[       ]+-+ [^:]+:[    ]*")
          (drx "\\b")
          (res (when (Info-find-file "gauche-refe" t)
@@ -299,6 +301,7 @@ form."
                       :doc-spec (geiser-gauche--info-spec))
 
 (defun geiser-gauche--manual-look-up (id _mod)
+  "Look up ID in the Gauche info manual."
   (let ((info-lookup-other-window-flag
          geiser-gauche-manual-lookup-other-window-p))
     (info-lookup-symbol (symbol-name id) 'geiser-gauche-mode))
@@ -313,6 +316,7 @@ form."
   (regexp-opt '("gauche" "gosh")))
 
 (defun geiser-gauche--guess ()
+  "Guess whether the current buffer edits Gauche code or repl."
   (save-excursion
     (goto-char (point-min))
     (re-search-forward geiser-gauche--guess-re nil t)))
