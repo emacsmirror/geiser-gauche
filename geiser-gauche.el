@@ -242,8 +242,8 @@ form."
 (defun geiser-gauche--keywords ()
   "Add geiser-specific keywords to the default ones."
   (append
-   (geiser-syntax--simple-keywords geiser-gauche-extra-keywords)
-   (geiser-syntax--simple-keywords geiser-gauche-builtin-keywords)))
+   (geiser-syntax--simple-keywords geiser-gauche--extra-keywords)
+   (geiser-syntax--simple-keywords geiser-gauche--builtin-keywords)))
 
 (geiser-syntax--scheme-indent
  (case-lambda: 0)
@@ -329,7 +329,7 @@ form."
   (binary geiser-gauche--binary)
   (arglist geiser-gauche--parameters)
   (version-command geiser-gauche--version)
-  (minimum-version geiser-gauche-minimum-version)
+  (minimum-version geiser-gauche--minimum-version)
   (repl-startup geiser-gauche--startup)
   (prompt-regexp geiser-gauche--prompt-regexp)
   (debugger-prompt-regexp nil)
