@@ -238,7 +238,7 @@ form."
 (defun geiser-gauche--keywords ()
   "Add geiser-specific keywords to the default ones."
   (append
-   (geiser-syntax--simple-keywords geiser-gauche--extra-keywords)
+   (geiser-syntax--simple-keywords geiser-gauche-extra-keywords)
    (geiser-syntax--simple-keywords geiser-gauche--builtin-keywords)))
 
 (geiser-syntax--scheme-indent
