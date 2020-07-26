@@ -8,11 +8,7 @@
 ;; Keywords: languages, gauche, scheme, geiser
 ;; Package-Requires: ((emacs "26.1") (geiser "0.11.2"))
 ;; Version: 0.0.1
-
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the Modified BSD License. You should
-;; have received a copy of the license along with this program. If
-;; not, see <https://www.xfree86.org/3.3.6/COPYRIGHT2.html#5>.
+;; SPDX-License-Identifier: BSD-3-Clause
 
 ;; This file is not part of GNU Emacs.
 

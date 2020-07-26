@@ -1,3 +1,8 @@
+;;;; geiser-gauche.scm -- procedures for Emacs-Gauche interaction
+
+;;; Copyright (C) 2020 András Simonyi
+;;; SPDX-License-Identifier: BSD-3-Clause
+
 (define-module geiser
   (use srfi-13)
   (use gauche.interactive)
@@ -15,13 +20,7 @@
    geiser:symbol-documentation
    geiser:symbol-location
    geiser:module-location
-   geiser:module-exports
-   ;; Missing functions:
-   ;; geiser:start-server
-   ;; geiser:object-signature
-   ;; geiser:find-file
-   ;; geiser:compile
-   ))
+   geiser:module-exports))
 
 (select-module geiser)
 
