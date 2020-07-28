@@ -45,7 +45,7 @@ with
 (setq geiser-active-implementations '(guile chez gauche))
 ```
 ## Credits
-Thanks to [Jao](https://gitlab.com/jaor) and his co-developers for creating and maintaining Geiser, and for helping the development of this package.
+Thanks to [Jao](https://gitlab.com/jaor) and his co-developers for creating and maintaining Geiser, and for helping the development of this package. Thanks also to Shiro Kawai and his co-developers for Gauche, the _raison d'être_ of this package.
 ## License
 Copyright (C) 2020 András Simonyi
 
