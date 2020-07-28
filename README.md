@@ -2,7 +2,7 @@
 
 Experimental [Gauche Scheme](http://practical-scheme.net/gauche/) support for [Geiser](https://gitlab.com/jaor/geiser/). 
 
-geiser-gauche is in an early stage of its development and mostly untested, so bugs and rough edges are to be expected.
+geiser-gauche is in a verly early stage of its development and mostly untested, so bugs and rough edges are to be expected.
 
 ## Description
 
