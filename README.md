@@ -13,7 +13,7 @@ Currently the following Geiser features are supported:
 + loading Scheme files,
 + macroexpansion,
 + symbol and module-name completion,
-+ short symbol documentation,
++ short symbol and module documentation,
 + detailed symbol and module documentation lookup in the Gauche Info manual.
 
 ## Requirements
