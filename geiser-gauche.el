@@ -70,13 +70,12 @@
 
 ;;; Utils
 
-(defconst geiser-gauche--load-dir (f-dirname load-file-name)
-  "The dir from geicher-gauche  was loaded.")
+(defconst geiser-gauche--load-dir (file-name-directory load-file-name)
+  "The directory from which geiser-gauche was loaded.")
 
 (defun geiser-gauche--symbol-begin (_module)
   "Return the beginning position of the symbol at point."
-  (max (save-excursion (beginning-of-line) (point))
-       (save-excursion (skip-syntax-backward "^(>") (1- (point)))))
+  (save-excursion (skip-syntax-backward "^'-()>") (point)))
 
 
 ;;; Guess whether buffer is Gauche
