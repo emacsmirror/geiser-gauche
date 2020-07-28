@@ -14,7 +14,7 @@
 
 ;;; Commentary:
 
-;; geiser-gauche adds Gauche scheme support to the `geiser' package
+;; geiser-gauche adds Gauche Scheme support to the `geiser' package
 
 ;;; Code:
 
@@ -29,7 +29,6 @@
 (require 'geiser-impl)
 (require 'geiser)
 
-
 ;;; Customization
 
 (defgroup geiser-gauche nil
@@ -68,14 +67,24 @@
   :type 'boolean
   :group 'geiser-gauche)
 
-
 ;;; Utils
 
 (defconst geiser-gauche--load-dir (f-dirname load-file-name)
   "The dir from geicher-gauche  was loaded.")
 
-
-;;; REPL support:
+(defun geiser-gauche--symbol-begin (_module)
+  "Return the beginning position of the symbol at point."
+  (max (save-excursion (beginning-of-line) (point))
+       (save-excursion (skip-syntax-backward "^(>") (1- (point)))))
+
+;;; REPL
+
+(defconst geiser-gauche--prompt-regexp "gosh\\(\\[[^(]+\\]\\)?> ")
+
+(defconst geiser-gauche--minimum-version "0.9.7")
+
+(defconst geiser-gauche--exit-command
+  "(exit)")
 
 (defun geiser-gauche--binary ()
   "Return the runnable Gauche binary name without path."
@@ -89,10 +98,28 @@
     "-l" ,(expand-file-name "geiser-gauche.scm" geiser-gauche--load-dir)
     ,@(and (listp geiser-gauche-binary) (cdr geiser-gauche-binary))))
 
-(defconst geiser-gauche--prompt-regexp "gosh\\(\\[[^(]+\\]\\)?> ")
+(defun geiser-gauche--version (binary)
+  "Return the version of a Gauche BINARY."
+  (cadr (read (cadr (process-lines binary "-V")))))
 
-
-;;; Evaluation support
+(defun geiser-gauche--startup (_remote)
+  "Initialize a Gauche REPL."
+  (let ((geiser-log-verbose-p t))
+    (compilation-setup t)
+    (geiser-eval--send/wait "(newline)")))
+
+;;; Guess whether buffer is Gauche
+
+(defconst geiser-gauche--guess-re
+  (regexp-opt '("gauche" "gosh")))
+
+(defun geiser-gauche--guess ()
+  "Guess whether the current buffer edits Gauche code or REPL."
+  (save-excursion
+    (goto-char (point-min))
+    (re-search-forward geiser-gauche--guess-re nil t)))
+
+;;; Evaluation
 
 (defun geiser-gauche--geiser-procedure (proc &rest args)
   "String to send to the REPL to execute geiser PROC with ARGS."
@@ -124,7 +151,6 @@
      (let ((form (mapconcat 'identity args " ")))
        (format "(eval '(geiser:%s %s) (find-module 'geiser))" proc form)))))
 
-
 ;;; Module handling
 
 (defconst geiser-gauche--module-re
@@ -168,14 +194,7 @@ form."
   "Return a scheme expression string to import MODULE."
   (format "(import %s)" module))
 
-
-(defun geiser-gauche--symbol-begin (_module)
-  "Return the beginning position of the symbol at point."
-  (max (save-excursion (beginning-of-line) (point))
-       (save-excursion (skip-syntax-backward "^(>") (1- (point)))))
-
-(defconst geiser-gauche--exit-command
-  "(exit)")
+;;; Keywords and syntax
 
 (defconst geiser-gauche--binding-forms
   '("and-let" "and-let1" "let1" "if-let1" "rlet1" "receive" "fluid-let" "let-values"
@@ -250,22 +269,6 @@ form."
  (case-lambda: 0)
  (let1 1))
 
-
-;;; REPL startup
-
-(defconst geiser-gauche--minimum-version "0.9.7")
-
-(defun geiser-gauche--version (binary)
-  "Return the version of a Gauche BINARY."
-  (cadr (read (cadr (process-lines binary "-V")))))
-
-(defun geiser-gauche--startup (_remote)
-  "Initialize a Gauche REPL."
-  (let ((geiser-log-verbose-p t))
-    (compilation-setup t)
-    (geiser-eval--send/wait "(newline)")))
-
-
 ;;; Error display
 
 (defun geiser-gauche--display-error (_module key msg)
@@ -280,8 +283,7 @@ form."
     (insert msg))
   (if (and msg (string-match "\\(.+\\)$" msg)) (match-string 1 msg) key))
 
-
-;;; Manual look up -- code adapted from the Guile implementation
+;;; Manual lookup -- code adapted from the Guile implementation
 
 (defun geiser-gauche--info-spec (&optional nodes)
   "Return an info docspec list for NODES."
@@ -310,19 +312,6 @@ form."
     (switch-to-buffer-other-window "*info*"))
   (search-forward (format "%s" id) nil t))
 
-
-;;; Guess whether buffer is Gauche
-
-(defconst geiser-gauche--guess-re
-  (regexp-opt '("gauche" "gosh")))
-
-(defun geiser-gauche--guess ()
-  "Guess whether the current buffer edits Gauche code or REPL."
-  (save-excursion
-    (goto-char (point-min))
-    (re-search-forward geiser-gauche--guess-re nil t)))
-
-
 ;;; Implementation definition
 
 (define-geiser-implementation gauche
@@ -350,7 +339,6 @@ form."
 
 (geiser-impl--add-to-alist 'regexp "\\.scm$" 'gauche t)
 
-
 ;;; Autoloads
 
 ;;;###autoload
@@ -360,7 +348,6 @@ form."
 (autoload 'switch-to-gauche "geiser-gauche"
   "Start a Geiser Gauche Scheme REPL, or switch to a running one." t)
 
-
 (provide 'geiser-gauche)
 
 ;;; geiser-gauche.el ends here
