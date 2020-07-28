@@ -35,8 +35,7 @@
   "Customization for Geiser's Gauche flavour."
   :group 'geiser)
 
-(geiser-custom--defcustom geiser-gauche-binary
-    "gosh"
+(geiser-custom--defcustom geiser-gauche-binary "gosh"
   "Name to use to call the Gauche executable when starting a REPL."
   :type '(choice string (repeat string))
   :group 'geiser-gauche)
