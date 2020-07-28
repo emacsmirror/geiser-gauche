@@ -26,6 +26,7 @@
 (require 'geiser-custom)
 (require 'geiser-eval)
 (require 'geiser-log)
+(require 'geiser-impl)
 (require 'geiser)
 
 
@@ -91,10 +92,10 @@
 (defconst geiser-gauche--prompt-regexp "gosh\\(\\[[^(]+\\]\\)?> ")
 
 
-;;; Evaluation support:
+;;; Evaluation support
 
 (defun geiser-gauche--geiser-procedure (proc &rest args)
-  "String to send to the repl to execute geiser PROC with ARGS."
+  "String to send to the REPL to execute geiser PROC with ARGS."
   (cl-case proc
     ;; Autodoc and symbol-location makes use of the {{cur-module}} cookie to
     ;; pass current module information
@@ -123,12 +124,15 @@
      (let ((form (mapconcat 'identity args " ")))
        (format "(eval '(geiser:%s %s) (find-module 'geiser))" proc form)))))
 
+
+;;; Module handling 
+
 (defconst geiser-gauche--module-re
   "(define-module +\\([[:alnum:].-]+\\)"
   "Regex for locating the module defined in a scheme source.")
 
 (defun geiser-gauche--get-current-repl-module ()
-  "Return the current repl module's name as a string."
+  "Return the current REPL module's name as a string."
   (substring
    (geiser-eval--send/result
     '(list (list (quote result) (write-to-string (current-module)))))
@@ -145,7 +149,7 @@ form."
                    (looking-at geiser-gauche--module-re)
                    (re-search-forward geiser-gauche--module-re nil t))
                (geiser-gauche--get-module (match-string-no-properties 1))
-	     ;; Return the repl module as fallback
+	     ;; Return the REPL module as fallback
              (geiser-gauche--get-module
 	      (geiser-gauche--get-current-repl-module)))))
 	((symbolp module) module)
@@ -163,6 +167,7 @@ form."
 (defun geiser-gauche--import-command (module)
   "Return a scheme expression string to import MODULE."
   (format "(import %s)" module))
+
 
 (defun geiser-gauche--symbol-begin (_module)
   "Return the beginning position of the symbol at point."
@@ -255,7 +260,7 @@ form."
   (cadr (read (cadr (process-lines binary "-V")))))
 
 (defun geiser-gauche--startup (_remote)
-  "Initialize a Gauche repl."
+  "Initialize a Gauche REPL."
   (let ((geiser-log-verbose-p t))
     (compilation-setup t)
     (geiser-eval--send/wait "(newline)")))
@@ -312,13 +317,13 @@ form."
   (regexp-opt '("gauche" "gosh")))
 
 (defun geiser-gauche--guess ()
-  "Guess whether the current buffer edits Gauche code or repl."
+  "Guess whether the current buffer edits Gauche code or REPL."
   (save-excursion
     (goto-char (point-min))
     (re-search-forward geiser-gauche--guess-re nil t)))
 
 
-;;; Implementation definition:
+;;; Implementation definition
 
 (define-geiser-implementation gauche
   (unsupported-procedures '(callers callees generic-methods))
@@ -345,8 +350,24 @@ form."
 
 (geiser-impl--add-to-alist 'regexp "\\.scm$" 'gauche t)
 
-(add-to-list 'geiser-active-implementations 'gauche)
+
+;;; Autoloads
 
+;;;###autoload
+(autoload 'run-gauche "geiser-gauche" "Start a Geiser Gauche Scheme REPL." t)
+
+;;;###autoload
+(autoload 'switch-to-gauche "geiser-gauche"
+  "Start a Geiser Gauche Scheme REPL, or switch to a running one." t)
+
+;;;###autoload
+(with-eval-after-load 'geiser-impl
+  ;; Add Gauche to the list of active implementations if not set manually.
+  (when (equal (cadar (get 'geiser-active-implementations 'standard-value))
+	       geiser-active-implementations)
+    (add-to-list 'geiser-active-implementations 'gauche)))
+
+
 (provide 'geiser-gauche)
 
 ;;; geiser-gauche.el ends here
