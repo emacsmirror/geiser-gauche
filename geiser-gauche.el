@@ -125,7 +125,7 @@
        (format "(eval '(geiser:%s %s) (find-module 'geiser))" proc form)))))
 
 
-;;; Module handling 
+;;; Module handling
 
 (defconst geiser-gauche--module-re
   "(define-module +\\([[:alnum:].-]+\\)"
@@ -359,13 +359,6 @@ form."
 ;;;###autoload
 (autoload 'switch-to-gauche "geiser-gauche"
   "Start a Geiser Gauche Scheme REPL, or switch to a running one." t)
-
-;;;###autoload
-(with-eval-after-load 'geiser-impl
-  ;; Add Gauche to the list of active implementations if not set manually.
-  (when (equal (cadar (get 'geiser-active-implementations 'standard-value))
-	       geiser-active-implementations)
-    (add-to-list 'geiser-active-implementations 'gauche)))
 
 
 (provide 'geiser-gauche)
