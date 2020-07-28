@@ -51,7 +51,9 @@
   (let ((module-repr (write-to-string module)))
     (string->symbol
      (substring module-repr 9 (- (string-length module-repr) 1)))))
+
 
+;;;; Simple command implementations
 
 (define (geiser:macroexpand form . rest)
   (with-output-to-string
@@ -83,6 +85,11 @@
 
 (define (geiser:no-values . rest)
   (values))
+
+;;; NOTE: We add the load-path at the end. Is this correct?
+(define-macro (geiser:add-to-load-path dir)
+  `(add-load-path ,dir :after))
+
 
 ;;;; Completions
 
@@ -102,7 +109,7 @@
    (map (^x (symbol->string (module-name x)))
 	(all-modules))))
 
-;;;; Symbol documentation 
+;;;; Symbol information
 
 ;;; Return the signature of SYMBOL in MODULE if there is one, SYMBOL if the
 ;;; symbol is bound without one, #f otherwise.
@@ -134,6 +141,20 @@
 
 (define (geiser:symbol-documentation symbol . rest)
   `(("signature" ,(format-symbol-infos (symbol-infos symbol)))))
+
+(define (geiser:symbol-location symbol pref-module)
+  (let* ((module (or pref-module 'user))
+	 (obj (global-variable-ref module symbol #f)))
+    (or (and-let* (obj
+		   ((or (is-a? obj <procedure>)
+			(is-a? obj <generic>)))
+		   (sl (source-location obj))
+		   (file (car sl))
+		   ((string-contains file "/"))
+		   ((not (string-contains file "./")))
+		   (line (cadr sl)))
+	  `(("file" . ,file) ("line" . ,line) ("column")))
+	'(("file") ("line") ("column")))))
 
 
 ;;;; Autodoc
@@ -206,6 +227,7 @@
 		     process-dotted-arg-info)
 		 (cdr sig)))
 	      ("module" ,module))))))
+
 
 ;;;; Module information
 
@@ -243,23 +265,3 @@
 		 `(("file" . ,(car paths)) ("line") ("column"))
 		 '(("file") ("line") ("column"))))))
 
-
-;;;; Further
-
-(define (geiser:symbol-location symbol pref-module)
-  (let* ((module (or pref-module 'user))
-	 (obj (global-variable-ref module symbol #f)))
-    (or (and-let* (obj
-		   ((or (is-a? obj <procedure>)
-			(is-a? obj <generic>)))
-		   (sl (source-location obj))
-		   (file (car sl))
-		   ((string-contains file "/"))
-		   ((not (string-contains file "./")))
-		   (line (cadr sl)))
-	  `(("file" . ,file) ("line" . ,line) ("column")))
-	'(("file") ("line") ("column")))))
-
-;;; TODO We add the load-path at the end. Is this correct?
-(define-macro (geiser:add-to-load-path dir)
-  `(add-load-path ,dir :after))
