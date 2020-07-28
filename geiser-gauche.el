@@ -29,6 +29,7 @@
 (require 'geiser-impl)
 (require 'geiser)
 
+
 ;;; Customization
 
 (defgroup geiser-gauche nil
@@ -66,6 +67,7 @@
   :type 'boolean
   :group 'geiser-gauche)
 
+
 ;;; Utils
 
 (defconst geiser-gauche--load-dir (f-dirname load-file-name)
@@ -76,37 +78,7 @@
   (max (save-excursion (beginning-of-line) (point))
        (save-excursion (skip-syntax-backward "^(>") (1- (point)))))
 
-;;; REPL
-
-(defconst geiser-gauche--prompt-regexp "gosh\\(\\[[^(]+\\]\\)?> ")
-
-(defconst geiser-gauche--minimum-version "0.9.7")
-
-(defconst geiser-gauche--exit-command
-  "(exit)")
-
-(defun geiser-gauche--binary ()
-  "Return the runnable Gauche binary name without path."
-  (if (listp geiser-gauche-binary)
-      (car geiser-gauche-binary)
-    geiser-gauche-binary))
-
-(defun geiser-gauche--parameters ()
-  "Return a list with all parameters needed to start Gauche Scheme."
-  `(,@geiser-gauche-extra-command-line-parameters
-    "-l" ,(expand-file-name "geiser-gauche.scm" geiser-gauche--load-dir)
-    ,@(and (listp geiser-gauche-binary) (cdr geiser-gauche-binary))))
-
-(defun geiser-gauche--version (binary)
-  "Return the version of a Gauche BINARY."
-  (cadr (read (cadr (process-lines binary "-V")))))
-
-(defun geiser-gauche--startup (_remote)
-  "Initialize a Gauche REPL."
-  (let ((geiser-log-verbose-p t))
-    (compilation-setup t)
-    (geiser-eval--send/wait "(newline)")))
-
+
 ;;; Guess whether buffer is Gauche
 
 (defconst geiser-gauche--guess-re
@@ -118,81 +90,7 @@
     (goto-char (point-min))
     (re-search-forward geiser-gauche--guess-re nil t)))
 
-;;; Evaluation
-
-(defun geiser-gauche--geiser-procedure (proc &rest args)
-  "String to send to the REPL to execute geiser PROC with ARGS."
-  (cl-case proc
-    ;; Autodoc and symbol-location makes use of the {{cur-module}} cookie to
-    ;; pass current module information
-    ((autodoc symbol-location)
-     (format "(eval '(geiser:%s %s {{cur-module}}) (find-module 'geiser))"
-	     proc (mapconcat 'identity args " ")))
-    ;; Eval and compile are (module) context sensitive
-    ((eval compile)
-     (let ((module (cond ((string-equal "'()" (car args))
-			  "'()")
-			 ((and (car args))
-			  (concat "'" (car args)))
-			 (t
-			  "#f")))
-	   (form (mapconcat 'identity (cdr args) " ")))
-       ;; The {{cur-module}} cookie is replaced by the current module for
-       ;; commands that need it
-       (replace-regexp-in-string
-	"{{cur-module}}"
-	(if (string= module "'#f")
-	    (format "'%s" (geiser-gauche--get-module))
-	  module)
-	(format "(eval '(geiser:eval %s '%s) (find-module 'geiser))" module form))))
-    ;; The rest of the commands are all evaluated in the geiser module
-    (t
-     (let ((form (mapconcat 'identity args " ")))
-       (format "(eval '(geiser:%s %s) (find-module 'geiser))" proc form)))))
-
-;;; Module handling
-
-(defconst geiser-gauche--module-re
-  "(define-module +\\([[:alnum:].-]+\\)"
-  "Regex for locating the module defined in a scheme source.")
-
-(defun geiser-gauche--get-current-repl-module ()
-  "Return the current REPL module's name as a string."
-  (substring
-   (geiser-eval--send/result
-    '(list (list (quote result) (write-to-string (current-module)))))
-   9 -1))
-
-(defun geiser-gauche--get-module (&optional module)
-  "Return the current module as a symbol.
-If optional MODULE is non-nil then return its normalized symbol
-form."
-  (cond ((null module)
-         (save-excursion
-           (geiser-syntax--pop-to-top)
-           (if (or (re-search-backward geiser-gauche--module-re nil t)
-                   (looking-at geiser-gauche--module-re)
-                   (re-search-forward geiser-gauche--module-re nil t))
-               (geiser-gauche--get-module (match-string-no-properties 1))
-	     ;; Return the REPL module as fallback
-             (geiser-gauche--get-module
-	      (geiser-gauche--get-current-repl-module)))))
-	((symbolp module) module)
-        ((listp module) module)
-        ((stringp module)
-         (condition-case nil
-             (car (geiser-syntax--read-from-string module))
-           (error :f)))
-        (t :f)))
-
-(defun geiser-gauche--enter-command (module)
-  "Return a scheme expression string to enter MODULE."
-  (format "(select-module %s)" module))
-
-(defun geiser-gauche--import-command (module)
-  "Return a scheme expression string to import MODULE."
-  (format "(import %s)" module))
-
+
 ;;; Keywords and syntax
 
 (defconst geiser-gauche--binding-forms
@@ -268,6 +166,116 @@ form."
  (case-lambda: 0)
  (let1 1))
 
+
+;;; REPL
+
+(defconst geiser-gauche--prompt-regexp "gosh\\(\\[[^(]+\\]\\)?> ")
+
+(defconst geiser-gauche--minimum-version "0.9.7")
+
+(defconst geiser-gauche--exit-command
+  "(exit)")
+
+(defun geiser-gauche--binary ()
+  "Return the runnable Gauche binary name without path."
+  (if (listp geiser-gauche-binary)
+      (car geiser-gauche-binary)
+    geiser-gauche-binary))
+
+(defun geiser-gauche--parameters ()
+  "Return a list with all parameters needed to start Gauche Scheme."
+  `(,@geiser-gauche-extra-command-line-parameters
+    "-l" ,(expand-file-name "geiser-gauche.scm" geiser-gauche--load-dir)
+    ,@(and (listp geiser-gauche-binary) (cdr geiser-gauche-binary))))
+
+(defun geiser-gauche--version (binary)
+  "Return the version of a Gauche BINARY."
+  (cadr (read (cadr (process-lines binary "-V")))))
+
+(defun geiser-gauche--startup (_remote)
+  "Initialize a Gauche REPL."
+  (let ((geiser-log-verbose-p t))
+    (compilation-setup t)
+    (geiser-eval--send/wait "(newline)")))
+
+
+;;; Evaluation
+
+(defun geiser-gauche--geiser-procedure (proc &rest args)
+  "String to send to the REPL to execute geiser PROC with ARGS."
+  (cl-case proc
+    ;; Autodoc and symbol-location makes use of the {{cur-module}} cookie to
+    ;; pass current module information
+    ((autodoc symbol-location)
+     (format "(eval '(geiser:%s %s {{cur-module}}) (find-module 'geiser))"
+	     proc (mapconcat 'identity args " ")))
+    ;; Eval and compile are (module) context sensitive
+    ((eval compile)
+     (let ((module (cond ((string-equal "'()" (car args))
+			  "'()")
+			 ((and (car args))
+			  (concat "'" (car args)))
+			 (t
+			  "#f")))
+	   (form (mapconcat 'identity (cdr args) " ")))
+       ;; The {{cur-module}} cookie is replaced by the current module for
+       ;; commands that need it
+       (replace-regexp-in-string
+	"{{cur-module}}"
+	(if (string= module "'#f")
+	    (format "'%s" (geiser-gauche--get-module))
+	  module)
+	(format "(eval '(geiser:eval %s '%s) (find-module 'geiser))" module form))))
+    ;; The rest of the commands are all evaluated in the geiser module
+    (t
+     (let ((form (mapconcat 'identity args " ")))
+       (format "(eval '(geiser:%s %s) (find-module 'geiser))" proc form)))))
+
+
+;;; Module handling
+
+(defconst geiser-gauche--module-re
+  "(define-module +\\([[:alnum:].-]+\\)"
+  "Regex for locating the module defined in a scheme source.")
+
+(defun geiser-gauche--get-current-repl-module ()
+  "Return the current REPL module's name as a string."
+  (substring
+   (geiser-eval--send/result
+    '(list (list (quote result) (write-to-string (current-module)))))
+   9 -1))
+
+(defun geiser-gauche--get-module (&optional module)
+  "Return the current module as a symbol.
+If optional MODULE is non-nil then return its normalized symbol
+form."
+  (cond ((null module)
+         (save-excursion
+           (geiser-syntax--pop-to-top)
+           (if (or (re-search-backward geiser-gauche--module-re nil t)
+                   (looking-at geiser-gauche--module-re)
+                   (re-search-forward geiser-gauche--module-re nil t))
+               (geiser-gauche--get-module (match-string-no-properties 1))
+	     ;; Return the REPL module as fallback
+             (geiser-gauche--get-module
+	      (geiser-gauche--get-current-repl-module)))))
+	((symbolp module) module)
+        ((listp module) module)
+        ((stringp module)
+         (condition-case nil
+             (car (geiser-syntax--read-from-string module))
+           (error :f)))
+        (t :f)))
+
+(defun geiser-gauche--enter-command (module)
+  "Return a scheme expression string to enter MODULE."
+  (format "(select-module %s)" module))
+
+(defun geiser-gauche--import-command (module)
+  "Return a scheme expression string to import MODULE."
+  (format "(import %s)" module))
+
+
 ;;; Error display
 
 (defun geiser-gauche--display-error (_module key msg)
@@ -282,7 +290,9 @@ form."
     (insert msg))
   (if (and msg (string-match "\\(.+\\)$" msg)) (match-string 1 msg) key))
 
-;;; Manual lookup -- code adapted from the Guile implementation
+
+;;; Manual lookup
+;; code adapted from the Guile implementation
 
 (defun geiser-gauche--info-spec (&optional nodes)
   "Return an info docspec list for NODES."
@@ -311,6 +321,7 @@ form."
     (switch-to-buffer-other-window "*info*"))
   (search-forward (format "%s" id) nil t))
 
+
 ;;; Implementation definition
 
 (define-geiser-implementation gauche
@@ -338,6 +349,7 @@ form."
 
 (geiser-impl--add-to-alist 'regexp "\\.scm$" 'gauche t)
 
+
 ;;; Autoloads
 
 ;;;###autoload
