@@ -25,7 +25,7 @@ Currently the following Geiser features are supported:
 
 ## Requirements
 
-+ Gauche 0.9.9 or later.
++ Gauche 0.9.6 or later.
 + Geiser 0.11.2 or later.
 
 ## Installation and setup
