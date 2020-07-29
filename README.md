@@ -18,7 +18,7 @@ Currently the following Geiser features are supported:
 
 ## Requirements
 
-+ Gauche 0.9.7 or later,
++ Gauche 0.9.7 or later.
 + Geiser 0.11.2 or later.
 
 ## Installation
@@ -46,6 +46,12 @@ with
 ```emacs-lisp
 (setq geiser-active-implementations '(guile chez gauche))
 ```
+3. If Gauche's `gosh` binary is not in the path for Emacs then the variable
+   `geiser-gauche-binary` also has to be set in the init file:
+```emacs-lisp
+(setq geiser-gauche-binary /path/to/gosh)
+```
+
 ## Credits
 Thanks to [Jao](https://gitlab.com/jaor) and his co-developers for creating and maintaining Geiser, and for helping the development of this package. Thanks also to Shiro Kawai and his co-developers for Gauche, the _raison d'être_ of this package.
 ## License
