@@ -21,7 +21,7 @@ Currently the following Geiser features are supported:
 + Gauche 0.9.7 or later.
 + Geiser 0.11.2 or later.
 
-## Installation
+## Installation and setup
 
 1. Download the [latest release](https://gitlab.com/emacs-geiser/gauche/uploads/e949564ad09da2093bdd23ba04f4041a/geiser-gauche-0.0.1.tar) and install it using Emacs's built-in package manager by invoking the command
 ```
