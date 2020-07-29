@@ -170,7 +170,7 @@
 
 (defconst geiser-gauche--prompt-regexp "gosh\\(\\[[^(]+\\]\\)?> ")
 
-(defconst geiser-gauche--minimum-version "0.9.7")
+(defconst geiser-gauche--minimum-version "0.9.9")
 
 (defconst geiser-gauche--exit-command
   "(exit)")
