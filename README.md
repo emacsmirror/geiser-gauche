@@ -5,7 +5,6 @@ Experimental [Gauche Scheme](http://practical-scheme.net/gauche/) support for [G
 geiser-gauche is in a verly early stage of its development and mostly untested, so bugs and rough edges are to be expected.
 
 **Table of contents**
-
 - [Description](#description)
 - [Requirements](#requirements)
 - [Installation and setup](#installation-and-setup)
