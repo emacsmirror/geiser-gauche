@@ -30,7 +30,7 @@ Currently the following Geiser features are supported:
 
 ## Installation and setup
 
-1. Download the [latest release](https://gitlab.com/emacs-geiser/gauche/uploads/8c91ece5799c079b02a11c9c3ea7d55c/geiser-gauche-0.0.2.tar) and install it using Emacs's built-in package manager by invoking the command
+1. Download the [latest release](https://gitlab.com/emacs-geiser/gauche/uploads/700ce83c2c20bf711289053e561b0ead/geiser-gauche-0.0.2.tar) and install it using Emacs's built-in package manager by invoking the command
 ```
     M-x package-install-file
 ```
