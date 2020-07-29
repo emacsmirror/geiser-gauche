@@ -47,7 +47,7 @@ with
 (setq geiser-active-implementations '(guile chez gauche))
 ```
 3. If Gauche's `gosh` binary is not in the path for Emacs then the variable
-   `geiser-gauche-binary` also has to be set in the init file:
+   `geiser-gauche-binary` also has to be set in the init file, e.g., with
 ```emacs-lisp
 (setq geiser-gauche-binary /path/to/gosh)
 ```
