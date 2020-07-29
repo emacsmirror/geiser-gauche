@@ -7,7 +7,7 @@
 ;; URL: https://gitlab.com/emacs-geiser/gauche
 ;; Keywords: languages, gauche, scheme, geiser
 ;; Package-Requires: ((emacs "26.1") (geiser "0.11.2"))
-;; Version: 0.0.1
+;; Version: 0.0.2
 ;; SPDX-License-Identifier: BSD-3-Clause
 
 ;; This file is not part of GNU Emacs.
