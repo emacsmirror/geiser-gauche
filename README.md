@@ -4,6 +4,14 @@ Experimental [Gauche Scheme](http://practical-scheme.net/gauche/) support for [G
 
 geiser-gauche is in a verly early stage of its development and mostly untested, so bugs and rough edges are to be expected.
 
+**Table of contents**
+
+- [Description](#description)
+- [Requirements](#requirements)
+- [Installation and setup](#installation-and-setup)
+- [Credits](#credits)
+- [License](#license)
+
 ## Description
 
 This package adds support for the Gauche Scheme implementation to Geiser, a generic Scheme interaction mode for the GNU Emacs editor. 
