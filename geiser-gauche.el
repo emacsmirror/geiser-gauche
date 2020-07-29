@@ -194,8 +194,8 @@
 	;; Multiline version info is (hopefully) a sexp.
 	(cadr (read (cadr v)))
       ;; One line is a free-text version description string.
-      (let* ((s (car v))
-	     (start (string-match "version" (car v))))
+      (let ((s (car v))
+	    (start (string-match "version" (car v))))
 	(substring s (+ start 8) (+ start 13))))))
 
 (defun geiser-gauche--startup (_remote)
