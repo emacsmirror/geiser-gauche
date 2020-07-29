@@ -170,7 +170,7 @@
 
 (defconst geiser-gauche--prompt-regexp "gosh\\(\\[[^(]+\\]\\)?> ")
 
-(defconst geiser-gauche--minimum-version "0.9.9")
+(defconst geiser-gauche--minimum-version "0.9.6")
 
 (defconst geiser-gauche--exit-command
   "(exit)")
@@ -189,7 +189,14 @@
 
 (defun geiser-gauche--version (binary)
   "Return the version of a Gauche BINARY."
-  (cadr (read (cadr (process-lines binary "-V")))))
+  (let ((v (process-lines binary "-V")))
+    (if (< 1 (length v))
+	;; Multiline version info is (hopefully) a sexp.
+	(cadr (read (cadr v)))
+      ;; One line is a free-text version description string.
+      (let* ((s (car v))
+	     (start (string-match "version" (car v))))
+	(substring s (+ start 8) (+ start 13))))))
 
 (defun geiser-gauche--startup (_remote)
   "Initialize a Gauche REPL."
