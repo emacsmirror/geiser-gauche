@@ -212,7 +212,7 @@
   (cl-case proc
     ;; Autodoc and symbol-location makes use of the {{cur-module}} cookie to
     ;; pass current module information
-    ((autodoc symbol-location)
+    ((autodoc symbol-location completions)
      (format "(eval '(geiser:%s %s {{cur-module}}) (find-module 'geiser))"
 	     proc (mapconcat 'identity args " ")))
     ;; Eval and compile are (module) context sensitive

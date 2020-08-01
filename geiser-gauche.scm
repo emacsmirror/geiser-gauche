@@ -93,15 +93,29 @@
 
 ;;;; Completions
 
-(define (geiser:completions prefix . rest)
-  (delete-duplicates
-   (remove
-    (^x (or (string=? x "")
-	    (string-prefix? "(" x)))
-    (string-split
-     (with-output-to-string
-       (cut apropos (string->regexp (string-append "^" prefix))))
-     #/\s+/))))
+(define (geiser:completions prefix m . rest)
+  (let* ((module (or (and (symbol? m )
+			  (find-module m))
+		     (find-module 'user)))
+	 (symbols (module-visible-symbols module))
+	 (strings (map symbol->string symbols)))
+    (filter! (cut string-prefix? prefix <>) strings)))
+
+;;; Return the list of symbols defined by MODULE
+(define (module-symbols module)
+  (hash-table-keys (module-table module)))
+
+;;; Return the list of symbols visible from MODULE   
+(define (module-visible-symbols module)
+  (let* ((imports (module-imports module))
+	 (inherits (module-precedence-list module))
+	 (imported-syms (concatenate!
+			 (map module-exports imports)))
+	 (inherited-syms (concatenate!
+			  (map module-symbols inherits)))
+	 (own-syms (module-symbols module)))
+    (delete-duplicates! (concatenate!
+			 (list imported-syms inherited-syms own-syms)))))
 
 (define (geiser:module-completions prefix . rest)
   (filter
@@ -264,4 +278,7 @@
 	     (if (pair? paths)
 		 `(("file" . ,(car paths)) ("line") ("column"))
 		 '(("file") ("line") ("column"))))))
+
+
+
 
