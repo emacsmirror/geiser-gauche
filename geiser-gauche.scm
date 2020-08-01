@@ -101,11 +101,11 @@
 	 (strings (map symbol->string symbols)))
     (filter! (cut string-prefix? prefix <>) strings)))
 
-;;; Return the list of symbols defined by MODULE
+;;; Return the list of symbols defined by MODULE.
 (define (module-symbols module)
   (hash-table-keys (module-table module)))
 
-;;; Return the list of symbols visible from MODULE   
+;;; Return the list of symbols visible from MODULE.
 (define (module-visible-symbols module)
   (let* ((imports (module-imports module))
 	 (inherits (module-precedence-list module))
