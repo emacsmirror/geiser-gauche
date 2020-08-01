@@ -214,7 +214,7 @@
     ;; pass current module information
     ((autodoc symbol-location completions)
      (format "(eval '(geiser:%s %s {{cur-module}}) (find-module 'geiser))"
-	     proc (mapconcat 'identity args " ")))
+	     proc (mapconcat #'identity args " ")))
     ;; Eval and compile are (module) context sensitive
     ((eval compile)
      (let ((module (cond ((string-equal "'()" (car args))
@@ -223,7 +223,7 @@
 			  (concat "'" (car args)))
 			 (t
 			  "#f")))
-	   (form (mapconcat 'identity (cdr args) " ")))
+	   (form (mapconcat #'identity (cdr args) " ")))
        ;; The {{cur-module}} cookie is replaced by the current module for
        ;; commands that need it
        (replace-regexp-in-string
@@ -234,7 +234,7 @@
 	(format "(eval '(geiser:eval %s '%s) (find-module 'geiser))" module form))))
     ;; The rest of the commands are all evaluated in the geiser module
     (t
-     (let ((form (mapconcat 'identity args " ")))
+     (let ((form (mapconcat #'identity args " ")))
        (format "(eval '(geiser:%s %s) (find-module 'geiser))" proc form)))))
 
 
