@@ -93,9 +93,11 @@
 
 ;;;; Completions
 
-(define (geiser:completions prefix m . rest)
-  (let* ((module (or (and (symbol? m )
-			  (find-module m))
+;;; Return completions for PREFIX in for module with MOD-NAME.
+;;; MOD-NAME is a symbol. 
+(define (geiser:completions prefix mod-name . rest)
+  (let* ((module (or (and (symbol? mod-name )
+			  (find-module mod-name))
 		     (find-module 'user)))
 	 (symbols (module-visible-symbols module))
 	 (strings (map symbol->string symbols)))
