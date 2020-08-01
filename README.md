@@ -30,10 +30,9 @@ Currently the following Geiser features are supported:
 
 ## Installation and setup
 
-1. Download the [latest release](https://gitlab.com/emacs-geiser/gauche/uploads/700ce83c2c20bf711289053e561b0ead/geiser-gauche-0.0.2.tar) and install it using Emacs's built-in package manager by invoking the command
-```
-    M-x package-install-file
-```
+1. Install the package, which is available in the [MELPA package
+repository](https://melpa.org) and can be installed using Emacs’s built-in
+package manager, `package.el`.
 2. Add Gauche to Geiser's list of active Scheme implementations in your Emacs init file. This can be done, e.g., by adding
 ```emacs-lisp
 (with-eval-after-load 'geiser-impl
