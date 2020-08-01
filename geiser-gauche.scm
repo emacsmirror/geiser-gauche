@@ -278,7 +278,3 @@
 	     (if (pair? paths)
 		 `(("file" . ,(car paths)) ("line") ("column"))
 		 '(("file") ("line") ("column"))))))
-
-
-
-
