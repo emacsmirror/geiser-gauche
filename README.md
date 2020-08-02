@@ -1,5 +1,5 @@
 # geiser-gauche
-[![MELPA](http://melpa.org/packages/geiser-gauche.svg)](http://melpa.org/#/geiser-gauche)
+[![MELPA](https://melpa.org/packages/geiser-gauche-badge.svg)](https://melpa.org/#/geiser-gauche)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://spdx.org/licenses/BSD-3-Clause.html)
 
 Experimental [Gauche Scheme](http://practical-scheme.net/gauche/) support for [Geiser](https://gitlab.com/jaor/geiser/). 
