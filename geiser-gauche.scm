@@ -93,7 +93,7 @@
 
 ;;;; Completions
 
-;;; Return completions for PREFIX in for module with MOD-NAME.
+;;; Return completions for PREFIX for module with MOD-NAME.
 ;;; MOD-NAME is a symbol. 
 (define (geiser:completions prefix mod-name . rest)
   (let* ((module (or (and (symbol? mod-name )
