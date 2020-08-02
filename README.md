@@ -21,7 +21,7 @@ Currently the following Geiser features are supported:
 + evaluation of sexps, definitions, regions and whole buffers,
 + loading Scheme files,
 + macroexpansion,
-+ symbol and module-name completion,
++ identifier completion,
 + short symbol and module documentation,
 + detailed symbol and module documentation lookup in the Gauche Info manual.
 
