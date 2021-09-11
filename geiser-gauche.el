@@ -353,10 +353,13 @@ form."
   (keywords geiser-gauche--keywords)
   (case-sensitive geiser-gauche-case-sensitive-p))
 
-(geiser-impl--add-to-alist 'regexp "\\.scm$" 'gauche t)
+(geiser-implementation-extension 'gauche "scm")
 
 
 ;;; Autoloads
+
+;;;###autoload
+(geiser-activate-implementation 'gauche)
 
 ;;;###autoload
 (autoload 'run-gauche "geiser-gauche" "Start a Geiser Gauche Scheme REPL." t)
