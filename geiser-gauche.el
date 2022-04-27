@@ -262,9 +262,7 @@ form."
                    (looking-at geiser-gauche--module-re)
                    (re-search-forward geiser-gauche--module-re nil t))
                (geiser-gauche--get-module (match-string-no-properties 1))
-	     ;; Return the REPL module as fallback
-             (geiser-gauche--get-module
-	      (geiser-gauche--get-current-repl-module)))))
+             :f)))
 	((symbolp module) module)
         ((listp module) module)
         ((stringp module)
