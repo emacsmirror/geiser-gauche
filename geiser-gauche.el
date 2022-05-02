@@ -229,7 +229,10 @@
        (replace-regexp-in-string
 	"{{cur-module}}"
 	(if (string= module "'#f")
-	    (format "'%s" (geiser-gauche--get-module))
+	    (let ((cur-module (geiser-gauche--get-module)))
+	      (if (eq cur-module :f)
+		  "'#f"
+		(format "'%s" cur-module)))
 	  module)
 	(format "(eval '(geiser:eval %s '%s) (find-module 'geiser))" module form))))
     ;; The rest of the commands are all evaluated in the geiser module
