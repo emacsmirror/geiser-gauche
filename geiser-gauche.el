@@ -67,6 +67,11 @@
   :type 'boolean
   :group 'geiser-gauche)
 
+(geiser-custom--defcustom geiser-gauche-rnrs nil
+  "Non-nil specifies rnrs version, corresponding to gosh's -r option"
+  :type 'integer
+  :group 'geiser-gauche)
+
 
 ;;; Utils
 
@@ -184,7 +189,12 @@
 (defun geiser-gauche--parameters ()
   "Return a list with all parameters needed to start Gauche Scheme."
   `(,@geiser-gauche-extra-command-line-parameters
-    "-l" ,(expand-file-name "geiser-gauche.scm" geiser-gauche--load-dir)
+    ,@(if geiser-gauche-rnrs
+           (list "-r" (number-to-string geiser-gauche-rnrs)
+                 "-l" (expand-file-name "geiser-gauche-r7rs.scm"
+                                        geiser-gauche--load-dir))
+        (list "-l" (expand-file-name "geiser-gauche.scm"
+                                     geiser-gauche--load-dir)))
     ,@(and (listp geiser-gauche-binary) (cdr geiser-gauche-binary))))
 
 (defun geiser-gauche--version (binary)
